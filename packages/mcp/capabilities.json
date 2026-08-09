@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "server": "sixtyfold-components",
+  "tools": [
+    "diagnose_chart",
+    "generate_integration",
+    "inspect_component_api",
+    "list_packages",
+    "recommend_packages",
+    "recommend_performance_settings",
+    "validate_chart_options"
+  ],
+  "resources": [
+    {
+      "name": "data-ownership-guide",
+      "uri": "sixtyfold://guides/data-ownership"
+    },
+    {
+      "name": "package-catalog",
+      "uri": "sixtyfold://catalog/packages"
+    },
+    {
+      "name": "performance-guide",
+      "uri": "sixtyfold://guides/performance"
+    }
+  ],
+  "resourceTemplates": [
+    {
+      "name": "package-api",
+      "uriTemplate": "sixtyfold://api/{packageName}"
+    }
+  ],
+  "prompts": ["add-sixtyfold-chart", "review-sixtyfold-integration", "tune-sixtyfold-performance"]
+}

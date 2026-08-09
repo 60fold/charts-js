@@ -1,0 +1,364 @@
+{
+  "schemaVersion": 1,
+  "scaffold": {
+    "formats": [
+      "object-rows",
+      "columnar"
+    ],
+    "timeUnits": [
+      "epoch-milliseconds",
+      "epoch-seconds",
+      "iso-string"
+    ],
+    "defaults": {
+      "line": {
+        "timeField": "timestamp",
+        "valueFields": [
+          "value"
+        ]
+      },
+      "stock": {
+        "timeField": "timestamp",
+        "openField": "open",
+        "highField": "high",
+        "lowField": "low",
+        "closeField": "close",
+        "volumeField": "volume"
+      }
+    }
+  },
+  "failureModes": [
+    {
+      "id": "zero-size-host",
+      "title": "The canvas is blank or has zero size",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "blank",
+        "canvas",
+        "invisible",
+        "zero height",
+        "zero size"
+      ],
+      "symptom": "The chart initializes without a visible error, but no plot appears or the canvas measures zero pixels high.",
+      "cause": "The canvas host did not have a concrete height when the renderer initialized.",
+      "checks": [
+        "Inspect the host and canvas with getBoundingClientRect(); both width and height must be greater than zero.",
+        "Check whether a flex or grid ancestor collapsed the chart row."
+      ],
+      "fixes": [
+        "Give the host a concrete height or min-height before initialize() runs.",
+        "Let the canvas fill that host instead of relying on intrinsic canvas dimensions."
+      ],
+      "snippet": {
+        "language": "css",
+        "label": "Give the chart a measurable host",
+        "code": ".chart-host {\n  position: relative;\n  width: 100%;\n  height: clamp(20rem, 55vh, 34rem);\n}\n\n.chart-host > canvas {\n  display: block;\n  width: 100%;\n  height: 100%;\n}"
+      }
+    },
+    {
+      "id": "initialization-order",
+      "title": "Data is installed before the chart is ready",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "first render",
+        "initialize",
+        "initialization",
+        "missing data",
+        "not ready"
+      ],
+      "symptom": "The first dataset does not appear, while a later update or remount works.",
+      "cause": "A vanilla integration called a data method before initialize() completed, or initialized the same canvas more than once.",
+      "checks": [
+        "Verify that initialize() is awaited exactly once for each chart instance.",
+        "If a framework owns the view, prefer the official adapter so mount and unmount ordering is handled for you."
+      ],
+      "fixes": [
+        "Await initialize() before calling setData() or setMultiSeriesData().",
+        "Destroy the old chart before reusing its canvas for another instance."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Use the vanilla lifecycle in order",
+        "code": "const chart = new LineChart(canvas, { renderMode: \"auto\" });\nawait chart.initialize();\nchart.setData(data);\n\n// Call this when the view is permanently removed.\nexport function disposeChart() {\n  chart.destroy();\n}"
+      }
+    },
+    {
+      "id": "worker-fallback",
+      "title": "Worker rendering falls back to the main thread",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "csp",
+        "fallback",
+        "main thread",
+        "offscreen",
+        "worker"
+      ],
+      "symptom": "A chart works but resolves to main-thread rendering, or worker construction fails only in production.",
+      "cause": "Worker, OffscreenCanvas, transferControlToOffscreen, or the deployed Content Security Policy prevented the worker renderer from starting.",
+      "checks": [
+        "Use setStatsCallback() temporarily and inspect stats.renderMode.",
+        "Check the browser console and worker-src Content Security Policy directive."
+      ],
+      "fixes": [
+        "Keep renderMode set to auto unless forcing a mode is necessary for diagnostics.",
+        "Allow the application-generated worker URL in worker-src and keep the main-thread fallback operational."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Confirm the resolved renderer",
+        "code": "chart.setStatsCallback((stats) => {\n  console.info(\"Sixtyfold renderer:\", stats.renderMode);\n  chart.setStatsCallback(null);\n});"
+      }
+    },
+    {
+      "id": "detached-buffers",
+      "title": "Typed arrays become detached after setData",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "buffer",
+        "detached",
+        "neutered",
+        "transfer",
+        "typed array"
+      ],
+      "symptom": "A source typed array has byteLength 0 or can no longer be read after data was passed to a worker-backed chart.",
+      "cause": "Bulk chart data is transferred to the renderer in worker mode; transferred ArrayBuffers leave the caller.",
+      "checks": [
+        "Inspect byteLength immediately before and after the bulk data call.",
+        "Confirm whether another subsystem genuinely needs to retain a readable copy."
+      ],
+      "fixes": [
+        "Treat the bulk data call as an ownership transfer.",
+        "Clone only the columns that another subsystem must retain; avoid duplicating multi-million-value datasets by default."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Retain an intentional application copy",
+        "code": "const retainedX = sourceX.slice();\nconst retainedY = sourceY.slice();\n\nchart.setData({\n  x: sourceX,\n  y: sourceY,\n  length: sourceX.length,\n});\n\n// retainedX and retainedY remain readable."
+      }
+    },
+    {
+      "id": "timestamp-contract",
+      "title": "The time axis is compressed, empty, or far in the future",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "date",
+        "future",
+        "order",
+        "seconds",
+        "timestamp",
+        "time axis"
+      ],
+      "symptom": "Ticks show implausible dates, the visible range collapses, or panning behaves unpredictably.",
+      "cause": "The X column used seconds or strings instead of finite ordered epoch milliseconds, or observations were not sorted.",
+      "checks": [
+        "Inspect the first and last timestamps and convert them with new Date(value).",
+        "Verify every timestamp is finite and non-decreasing."
+      ],
+      "fixes": [
+        "Convert epoch seconds to milliseconds before creating the Float64Array.",
+        "Parse ISO dates once during ingestion and sort complete observations before splitting them into columns."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Normalize timestamps during ingestion",
+        "code": "const timestamp = Float64Array.from(rows, (row) => {\n  const value = Date.parse(row.recordedAt);\n  if (!Number.isFinite(value)) throw new TypeError(\"Invalid recordedAt value\");\n  return value;\n});"
+      }
+    },
+    {
+      "id": "column-alignment",
+      "title": "Columns have different lengths or invalid numeric values",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "alignment",
+        "different length",
+        "length mismatch",
+        "nan",
+        "numeric"
+      ],
+      "symptom": "The chart rejects a dataset, truncates unexpectedly, or renders values under the wrong timestamps.",
+      "cause": "Columnar data was created from separate filters or mappings, so the time and value columns no longer describe the same observations.",
+      "checks": [
+        "Compare every column length before calling the chart.",
+        "Validate numeric conversion before transferring buffers."
+      ],
+      "fixes": [
+        "Filter and sort complete source observations first, then split them into aligned typed columns.",
+        "Use explicit NaN only for a documented line-series gap; OHLCV values must remain valid candles."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Reject misaligned columns before transfer",
+        "code": "const lengths = [timestamp.length, open.length, high.length, low.length, close.length, volume.length];\nif (!lengths.every((length) => length === lengths[0])) {\n  throw new RangeError(`OHLCV columns are misaligned: ${lengths.join(\", \")}`);\n}"
+      }
+    },
+    {
+      "id": "ssr-boundary",
+      "title": "SSR or hydration accesses browser-only chart APIs",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "document is not defined",
+        "hydrate",
+        "hydration",
+        "server",
+        "ssr",
+        "window is not defined"
+      ],
+      "symptom": "A server render throws because window, document, Worker, or HTMLCanvasElement is unavailable, or hydration produces a different tree.",
+      "cause": "The interactive browser chart was constructed during server evaluation instead of after the client mounted.",
+      "checks": [
+        "Find chart construction at module scope or inside a server component.",
+        "Separate server image generation through @sixtyfold/ssr from browser interaction."
+      ],
+      "fixes": [
+        "Use the official framework adapter inside a client-owned component.",
+        "Render a stable host during SSR and initialize the interactive chart only after mount."
+      ],
+      "snippet": {
+        "language": "tsx",
+        "label": "Keep a Next.js chart behind the client boundary",
+        "code": "\"use client\";\n\nimport type { MultiSeriesData, TimeSeriesData } from \"@sixtyfold/core\";\nimport { SixtyfoldLineChart } from \"@sixtyfold/react/line\";\n\ntype LineData = TimeSeriesData | MultiSeriesData;\n\nexport function ChartPanel({ data }: { data: LineData }) {\n  return <SixtyfoldLineChart data={data} options={{ renderMode: \"auto\" }} />;\n}"
+      }
+    },
+    {
+      "id": "lifecycle-leak",
+      "title": "Workers or memory remain after navigation",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "destroy",
+        "leak",
+        "memory",
+        "navigation",
+        "unmount"
+      ],
+      "symptom": "Memory grows after repeatedly opening the view, or old charts continue rendering after navigation.",
+      "cause": "A vanilla chart or temporary data worker was not destroyed when its owning view was removed.",
+      "checks": [
+        "Record a browser heap snapshot before and after several mount/unmount cycles.",
+        "Look for retained chart instances, workers, observers, or decoded source arrays."
+      ],
+      "fixes": [
+        "Call destroy() exactly once for every vanilla chart instance.",
+        "Terminate temporary fetch/decode workers after their final transfer; official framework adapters destroy chart workers automatically."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Release chart and ingestion workers",
+        "code": "return () => {\n  dataWorker?.terminate();\n  chart.destroy();\n};"
+      }
+    },
+    {
+      "id": "interaction-performance",
+      "title": "Interaction is slow or drops frames",
+      "components": [
+        "line",
+        "stock"
+      ],
+      "keywords": [
+        "fps",
+        "freeze",
+        "jank",
+        "latency",
+        "performance",
+        "slow"
+      ],
+      "symptom": "Zooming, panning, initial decode, or streaming updates block visibly or miss the target frame rate.",
+      "cause": "The main thread is decoding or reshaping too much data, the chart resolved to the fallback renderer, or the visible workload includes more drawing passes than the target device can sustain.",
+      "checks": [
+        "Inspect stats.renderMode, frameTime, visible work, and LOD readiness during the actual interaction sequence.",
+        "Profile fetch, decode, conversion, transfer, and rendering separately."
+      ],
+      "fixes": [
+        "Use renderMode auto, prepare columnar typed arrays in a dedicated data worker, transfer once, and terminate that ingestion worker.",
+        "Benchmark representative browsers, DPRs, series counts, and gestures; 60 FPS is a design target rather than a device-independent guarantee."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Measure the active rendering path",
+        "code": "chart.setStatsCallback((stats) => {\n  console.table({\n    mode: stats.renderMode,\n    fps: stats.fps,\n    frameTime: stats.frameTime,\n    ready: stats.lodReady,\n  });\n}, { intervalMs: 250 });"
+      }
+    },
+    {
+      "id": "lod-transition",
+      "title": "Line detail changes abruptly after zoom settles",
+      "components": [
+        "line"
+      ],
+      "keywords": [
+        "abrupt",
+        "jump",
+        "lod",
+        "snap",
+        "texture",
+        "zoom"
+      ],
+      "symptom": "The viewport animates smoothly but the line texture changes again at the end of the gesture.",
+      "cause": "Presentation density or grid rebasing is too aggressive for the workload, or application code replaces data or appearance after animation completion.",
+      "checks": [
+        "Replay the same viewport sequence while observing presentation density, grid delta, and query visits.",
+        "Check for application-side setData(), setAppearance(), or viewport restoration after the animation settles."
+      ],
+      "fixes": [
+        "Start with adaptive mode, density 0.75, rebaseRatio 1.25, and quantizationStep 0.25.",
+        "Use setLODOptions() to tune one coefficient at a time; use density 0.25 for expensive range fills or exceptionally large multi-series work."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Tune presentation without recreating the chart",
+        "code": "chart.setLODOptions({\n  mode: \"adaptive\",\n  density: 0.75,\n  rebaseRatio: 1.25,\n  quantizationStep: 0.25,\n});"
+      }
+    },
+    {
+      "id": "gap-semantics",
+      "title": "A line connects across missing observations",
+      "components": [
+        "line"
+      ],
+      "keywords": [
+        "connect",
+        "gap",
+        "interpolate",
+        "missing",
+        "nan"
+      ],
+      "symptom": "A line visually crosses an interval where no measurement exists.",
+      "cause": "Missing observations were removed or replaced with zero instead of being represented as an aligned NaN gap.",
+      "checks": [
+        "Confirm the shared X column includes the missing interval when a visible break is required.",
+        "Inspect whether ingestion converted null values to zero."
+      ],
+      "fixes": [
+        "Keep aligned X positions and encode missing line values as Number.NaN.",
+        "Do not synthesize OHLCV candles or connect market closures; stock time-scale behavior is driven by observed candles."
+      ],
+      "snippet": {
+        "language": "ts",
+        "label": "Represent a real line-series gap",
+        "code": "const data = {\n  x: new Float64Array([0, 1, 2, 3]),\n  y: new Float64Array([12, Number.NaN, Number.NaN, 18]),\n  length: 4,\n};"
+      }
+    }
+  ]
+}

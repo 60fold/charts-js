@@ -1,0 +1,56 @@
+{
+  "name": "@sixtyfold/ssr",
+  "version": "1.0.0",
+  "description": "Server-side Canvas2D rendering for Sixtyfold line and stock charts.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Different Planet - Unipessoal Lda.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/60fold/charts-js.git",
+    "directory": "packages/ssr"
+  },
+  "homepage": "https://sixtyfold.dev/en/docs/ssr",
+  "bugs": {
+    "url": "https://github.com/60fold/charts-js/issues"
+  },
+  "keywords": [
+    "sixtyfold",
+    "charts",
+    "server-side-rendering",
+    "ssr",
+    "canvas",
+    "canvas2d",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@sixtyfold/core": "workspace:^",
+    "@sixtyfold/line": "workspace:^",
+    "@sixtyfold/stock": "workspace:^"
+  },
+  "scripts": {
+    "build": "node ../../scripts/clean-package-dist.mjs && tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit"
+  }
+}

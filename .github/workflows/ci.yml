@@ -1,0 +1,182 @@
+name: Sixtyfold Charts CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: sixtyfold-charts-js-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  packages:
+    name: Packages and clean consumers
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check out performance reference
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          path: .benchmark-reference
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.22.3
+          package-manager-cache: false
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.14
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: 2.9.3
+
+      - name: Install pinned package managers
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.15.1 --activate
+          npm install --global npm@11.18.0 --ignore-scripts
+
+      - name: Install locked dependencies without lifecycle scripts
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --dir .benchmark-reference install --frozen-lockfile --ignore-scripts
+
+      - name: Check source formatting
+        run: pnpm run format:check
+
+      - name: Run semantic lint
+        run: pnpm run lint
+
+      - name: Build public packages
+        run: pnpm run build:packages
+
+      - name: Typecheck the workspace
+        run: pnpm run typecheck
+
+      - name: Run unit tests
+        run: pnpm run test:unit
+
+      - name: Enforce renderer coverage thresholds
+        run: pnpm run test:coverage
+
+      - name: Render and validate SSR PNGs in Node, Bun, and Deno
+        run: |
+          pnpm run test:ssr:node
+          pnpm run test:ssr:bun
+          pnpm run test:ssr:deno
+
+      - name: Upload SSR runtime PNGs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ssr-runtime-pngs
+          path: artifacts/ssr-runtimes
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Install the clean-consumer browsers
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Exercise built renderer interactions and accessibility
+        run: pnpm run test:e2e:built
+
+      - name: Upload browser test evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-test-evidence
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Enforce Line renderer performance regressions
+        run: >-
+          pnpm run benchmark:line:compare --
+          --repetitions 3
+          --reference-root .benchmark-reference
+
+      - name: Enforce Stock renderer performance regressions
+        run: >-
+          pnpm run benchmark:stock:compare --
+          --repetitions 3
+          --reference-root .benchmark-reference
+
+      - name: Upload renderer benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: renderer-benchmarks
+          path: |
+            artifacts/benchmark-matrix
+            artifacts/benchmark-stock-matrix
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Build and smoke-test framework examples
+        run: |
+          pnpm run build:examples
+          node scripts/check-framework-examples.mjs
+
+      - name: Verify packed browser, worker, SSR, and tree-shaken consumers
+        run: node scripts/check-packed-release.mjs
+
+  ssr-platforms:
+    name: SSR visual reference (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-14
+          - windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.22.3
+          package-manager-cache: false
+
+      - name: Install pinned package manager
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.15.1 --activate
+
+      - name: Install locked dependencies without lifecycle scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build SSR renderer dependencies
+        run: |
+          pnpm --filter @sixtyfold/core run build
+          pnpm --filter @sixtyfold/line run build
+          pnpm --filter @sixtyfold/stock run build
+          pnpm --filter @sixtyfold/ssr run build
+
+      - name: Validate the pinned SSR pixels and rasterized text
+        run: pnpm run test:ssr:node
+
+      - name: Upload platform SSR PNGs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ssr-runtime-pngs-${{ runner.os }}
+          path: artifacts/ssr-runtimes
+          if-no-files-found: warn
+          retention-days: 7

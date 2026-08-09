@@ -1,0 +1,16 @@
+.benchmark-reference/
+artifacts/
+coverage/
+dist/
+dist-*/
+node_modules/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Package-manager and generated files have their own deterministic writers.
+pnpm-lock.yaml
+packages/mcp/knowledge/
+packages/mcp/src/developer-guidance.generated.ts
+packages/themes/src/lineCatalog.generated.ts
+packages/themes/src/stockCatalog.generated.ts

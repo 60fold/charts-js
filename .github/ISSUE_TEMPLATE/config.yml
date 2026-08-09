@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/60fold/charts-js/security/policy
+    about: Read the private reporting instructions. Do not disclose vulnerabilities in a public issue.
+  - name: Documentation
+    url: https://sixtyfold.dev/en/docs
+    about: Read the installation, API, framework, performance, and troubleshooting guides.
+  - name: Commercial licensing and support
+    url: https://sixtyfold.dev/en/licensing
+    about: Review commercial license options and support information.

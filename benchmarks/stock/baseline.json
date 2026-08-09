@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "maxRegressionPercent": 3,
+  "maxRegressionMilliseconds": 1,
+  "cases": [
+    {
+      "id": "plain",
+      "scenario": {
+        "pointCount": 600000,
+        "profile": "plain",
+        "cssWidth": 6144,
+        "cssHeight": 3456,
+        "devicePixelRatio": 1
+      },
+      "budgets": {
+        "p95FrameTimeMs": 50,
+        "maxRenderedCandles": 2000
+      },
+      "references": [
+        {
+          "environment": {
+            "browser": "chromium",
+            "browserVersion": "149.0.7827.55",
+            "platform": "darwin",
+            "architecture": "arm64",
+            "node": "v22.22.3",
+            "capturedAt": "2026-08-01T18:10:29.792Z"
+          },
+          "results": {
+            "frameTimeMs": {
+              "median": 16.9,
+              "p95": 19.9,
+              "max": 22.5
+            },
+            "renderedCandles": {
+              "median": 909,
+              "max": 996
+            },
+            "visibleCandles": {
+              "median": 909,
+              "max": 996
+            },
+            "lodLevel": {
+              "median": 1,
+              "max": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "analytics",
+      "scenario": {
+        "pointCount": 600000,
+        "profile": "analytics",
+        "cssWidth": 6144,
+        "cssHeight": 3456,
+        "devicePixelRatio": 1
+      },
+      "budgets": {
+        "p95FrameTimeMs": 60,
+        "maxRenderedCandles": 2000
+      },
+      "references": [
+        {
+          "environment": {
+            "browser": "chromium",
+            "browserVersion": "149.0.7827.55",
+            "platform": "darwin",
+            "architecture": "arm64",
+            "node": "v22.22.3",
+            "capturedAt": "2026-08-01T18:10:42.274Z"
+          },
+          "results": {
+            "frameTimeMs": {
+              "median": 22.8,
+              "p95": 27.5,
+              "max": 30.7
+            },
+            "renderedCandles": {
+              "median": 909,
+              "max": 996
+            },
+            "visibleCandles": {
+              "median": 909,
+              "max": 996
+            },
+            "lodLevel": {
+              "median": 1,
+              "max": 1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

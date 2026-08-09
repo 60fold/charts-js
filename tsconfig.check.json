@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "types": ["vite/client", "node"],
+    "paths": {
+      "@sixtyfold/core": ["packages/core/src/index.ts"],
+      "@sixtyfold/core/*": ["packages/core/src/*"],
+      "@sixtyfold/line": ["packages/line/src/index.ts"],
+      "@sixtyfold/line/*": ["packages/line/src/*"],
+      "@sixtyfold/stock": ["packages/stock/src/index.ts"],
+      "@sixtyfold/stock/market-layers": ["packages/stock/src/marketLayers.ts"],
+      "@sixtyfold/stock/*": ["packages/stock/src/*"],
+      "@sixtyfold/ssr": ["packages/ssr/src/index.ts"],
+      "@sixtyfold/themes": ["packages/themes/src/index.ts"],
+      "@sixtyfold/mcp": ["packages/mcp/src/index.ts"],
+      "@sixtyfold/mcp/*": ["packages/mcp/src/*"],
+      "@test/support/*": ["test/support/*"]
+    }
+  },
+  "include": ["packages/*/src/**/*.ts", "test/typecheck/**/*.ts"],
+  "exclude": [
+    "**/*.test.ts",
+    "packages/angular/**",
+    "packages/react/**",
+    "packages/solid/**",
+    "packages/svelte/**",
+    "packages/vue/**"
+  ]
+}

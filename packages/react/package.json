@@ -1,0 +1,69 @@
+{
+  "name": "@sixtyfold/react",
+  "version": "1.0.0",
+  "description": "React adapters for Sixtyfold line and stock charts.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Different Planet - Unipessoal Lda.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./line": {
+      "types": "./dist/line.d.ts",
+      "import": "./dist/line.js",
+      "default": "./dist/line.js"
+    },
+    "./stock": {
+      "types": "./dist/stock.d.ts",
+      "import": "./dist/stock.js",
+      "default": "./dist/stock.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/60fold/charts-js.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://sixtyfold.dev/en/docs/frameworks#react",
+  "bugs": {
+    "url": "https://github.com/60fold/charts-js/issues"
+  },
+  "keywords": [
+    "sixtyfold",
+    "charts",
+    "react",
+    "canvas2d",
+    "visualization"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "@sixtyfold/core": "workspace:^",
+    "@sixtyfold/line": "workspace:^",
+    "@sixtyfold/stock": "workspace:^",
+    "react": ">=18.0.0 <20.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@sixtyfold/core": {
+      "optional": true
+    },
+    "@sixtyfold/line": {
+      "optional": true
+    },
+    "@sixtyfold/stock": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.types.json",
+    "dev": "vite build --watch --emptyOutDir=false",
+    "typecheck": "tsc -p tsconfig.types.json --noEmit"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "name": "@sixtyfold/core",
+  "version": "1.0.0",
+  "description": "Shared Canvas2D chart runtime, data types, and interaction primitives for Sixtyfold Charts.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Different Planet - Unipessoal Lda.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./chart/BaseChart": {
+      "types": "./dist/chart/BaseChart.d.ts",
+      "import": "./dist/chart/BaseChart.js",
+      "default": "./dist/chart/BaseChart.js"
+    },
+    "./chart/chartConstants": {
+      "types": "./dist/chart/chartConstants.d.ts",
+      "import": "./dist/chart/chartConstants.js",
+      "default": "./dist/chart/chartConstants.js"
+    },
+    "./chart/chartStateUtils": {
+      "types": "./dist/chart/chartStateUtils.d.ts",
+      "import": "./dist/chart/chartStateUtils.js",
+      "default": "./dist/chart/chartStateUtils.js"
+    },
+    "./chart/chartUtils": {
+      "types": "./dist/chart/chartUtils.d.ts",
+      "import": "./dist/chart/chartUtils.js",
+      "default": "./dist/chart/chartUtils.js"
+    },
+    "./chart/workerInterface": {
+      "types": "./dist/chart/workerInterface.d.ts",
+      "import": "./dist/chart/workerInterface.js",
+      "default": "./dist/chart/workerInterface.js"
+    },
+    "./data/seriesTypes": {
+      "types": "./dist/data/seriesTypes.d.ts",
+      "import": "./dist/data/seriesTypes.js",
+      "default": "./dist/data/seriesTypes.js"
+    },
+    "./internal/renderer": {
+      "types": "./dist/internal/renderer.d.ts",
+      "import": "./dist/internal/renderer.js",
+      "default": "./dist/internal/renderer.js"
+    },
+    "./types/tooltip": {
+      "types": "./dist/types/tooltip.d.ts",
+      "import": "./dist/types/tooltip.js",
+      "default": "./dist/types/tooltip.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/60fold/charts-js.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://sixtyfold.dev/en/docs/core",
+  "bugs": {
+    "url": "https://github.com/60fold/charts-js/issues"
+  },
+  "keywords": [
+    "sixtyfold",
+    "charts",
+    "canvas",
+    "canvas2d",
+    "visualization",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.types.json",
+    "dev": "vite build --watch --emptyOutDir=false",
+    "typecheck": "tsc -p tsconfig.types.json --noEmit"
+  }
+}

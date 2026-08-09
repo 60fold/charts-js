@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sixtyfold Stock benchmark</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "@sixtyfold/core": "/packages/core/dist/index.js",
+          "@sixtyfold/core/chart/BaseChart": "/packages/core/dist/chart/BaseChart.js",
+          "@sixtyfold/core/chart/chartConstants": "/packages/core/dist/chart/chartConstants.js",
+          "@sixtyfold/core/chart/chartStateUtils": "/packages/core/dist/chart/chartStateUtils.js",
+          "@sixtyfold/core/chart/chartUtils": "/packages/core/dist/chart/chartUtils.js",
+          "@sixtyfold/core/internal/renderer": "/packages/core/dist/internal/renderer.js"
+        }
+      }
+    </script>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #080d16;
+      }
+
+      #chart {
+        display: block;
+        width: 1200px;
+        height: 720px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="chart" aria-label="Stock renderer benchmark"></canvas>
+    <script type="module" src="./scenario.mjs"></script>
+  </body>
+</html>

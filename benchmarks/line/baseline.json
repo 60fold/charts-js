@@ -1,0 +1,436 @@
+{
+  "schemaVersion": 2,
+  "maxRegressionPercent": 3,
+  "maxRegressionMilliseconds": 1,
+  "cases": [
+    {
+      "id": "series-1",
+      "scenario": {
+        "pointCount": 600000,
+        "seriesCount": 1,
+        "cssWidth": 1200,
+        "cssHeight": 720,
+        "devicePixelRatio": 1
+      },
+      "budgets": {
+        "p95FrameTimeMs": 50,
+        "maxPresentationVertices": 30000,
+        "maxPresentationQueryVisits": 100000
+      },
+      "references": [
+        {
+          "environment": {
+            "browser": "chromium",
+            "browserVersion": "149.0.7827.55",
+            "platform": "darwin",
+            "architecture": "arm64",
+            "node": "v22.22.3",
+            "capturedAt": "2026-08-01T22:38:15.679Z"
+          },
+          "results": {
+            "frameTimeMs": {
+              "median": 6.5,
+              "p95": 7.9,
+              "max": 8.3
+            },
+            "presentationVertices": {
+              "median": 2932,
+              "max": 3380
+            },
+            "presentationQueryVisits": {
+              "median": 2575,
+              "max": 2968
+            },
+            "presentationColumns": {
+              "median": 733,
+              "max": 845
+            },
+            "phases": {
+              "setupLayoutAnimationMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "viewportIndicesMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "yBoundsMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "cachePrepMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "getRenderDataMs": {
+                "median": 0.6,
+                "p95": 0.7
+              },
+              "chromeGridAxesMs": {
+                "median": 0.7,
+                "p95": 1
+              },
+              "rangeDrawMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "rangeRasterCompositeMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "rangeDrawingMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "ordinaryFillMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "fillEffectsMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "stackedAreasMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "barsMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "connectedSeriesMs": {
+                "median": 0.3,
+                "p95": 0.3
+              },
+              "ordinarySeriesMs": {
+                "median": 0.3,
+                "p95": 0.4
+              },
+              "legendCacheFinalizeMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "cacheDrawSubmissionMs": {
+                "median": 0.9,
+                "p95": 1.3
+              },
+              "cacheRasterizationSyncMs": {
+                "median": 4.9,
+                "p95": 5.9
+              },
+              "finalCacheBlitMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "overlaysCrosshairMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "rangeSelectorMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "totalMs": {
+                "median": 6.5,
+                "p95": 7.9
+              }
+            },
+            "lastWork": {
+              "rangeRasterUsed": false,
+              "centerPresentationPoints": 2932,
+              "rangePresentationPoints": 0,
+              "denseStepRectangleCalls": 0,
+              "barRectangleCount": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "series-4",
+      "scenario": {
+        "pointCount": 600000,
+        "seriesCount": 4,
+        "cssWidth": 1200,
+        "cssHeight": 720,
+        "devicePixelRatio": 1
+      },
+      "budgets": {
+        "p95FrameTimeMs": 50,
+        "maxPresentationVertices": 30000,
+        "maxPresentationQueryVisits": 100000
+      },
+      "references": [
+        {
+          "environment": {
+            "browser": "chromium",
+            "browserVersion": "149.0.7827.55",
+            "platform": "darwin",
+            "architecture": "arm64",
+            "node": "v22.22.3",
+            "capturedAt": "2026-08-01T22:38:18.345Z"
+          },
+          "results": {
+            "frameTimeMs": {
+              "median": 6.9,
+              "p95": 8.3,
+              "max": 8.8
+            },
+            "presentationVertices": {
+              "median": 12460,
+              "max": 13524
+            },
+            "presentationQueryVisits": {
+              "median": 9048,
+              "max": 10609
+            },
+            "presentationColumns": {
+              "median": 2657,
+              "max": 2958
+            },
+            "phases": {
+              "setupLayoutAnimationMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "viewportIndicesMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "yBoundsMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "cachePrepMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "getRenderDataMs": {
+                "median": 1.6,
+                "p95": 1.8
+              },
+              "chromeGridAxesMs": {
+                "median": 0.6,
+                "p95": 0.7
+              },
+              "rangeDrawMs": {
+                "median": 0.3,
+                "p95": 0.4
+              },
+              "rangeRasterCompositeMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "rangeDrawingMs": {
+                "median": 0.3,
+                "p95": 0.4
+              },
+              "ordinaryFillMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "fillEffectsMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "stackedAreasMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "barsMs": {
+                "median": 0.2,
+                "p95": 0.3
+              },
+              "connectedSeriesMs": {
+                "median": 0.6,
+                "p95": 0.7
+              },
+              "ordinarySeriesMs": {
+                "median": 0.8,
+                "p95": 1
+              },
+              "legendCacheFinalizeMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "cacheDrawSubmissionMs": {
+                "median": 1.7,
+                "p95": 2
+              },
+              "cacheRasterizationSyncMs": {
+                "median": 3.6,
+                "p95": 4.6
+              },
+              "finalCacheBlitMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "overlaysCrosshairMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "rangeSelectorMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "totalMs": {
+                "median": 6.9,
+                "p95": 8.3
+              }
+            },
+            "lastWork": {
+              "rangeRasterUsed": false,
+              "centerPresentationPoints": 8796,
+              "rangePresentationPoints": 3664,
+              "denseStepRectangleCalls": 1534,
+              "barRectangleCount": 22
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "series-16",
+      "scenario": {
+        "pointCount": 600000,
+        "seriesCount": 16,
+        "cssWidth": 1200,
+        "cssHeight": 720,
+        "devicePixelRatio": 1
+      },
+      "budgets": {
+        "p95FrameTimeMs": 80,
+        "maxPresentationVertices": 120000,
+        "maxPresentationQueryVisits": 400000
+      },
+      "references": [
+        {
+          "environment": {
+            "browser": "chromium",
+            "browserVersion": "149.0.7827.55",
+            "platform": "darwin",
+            "architecture": "arm64",
+            "node": "v22.22.3",
+            "capturedAt": "2026-08-01T22:38:26.836Z"
+          },
+          "results": {
+            "frameTimeMs": {
+              "median": 15.4,
+              "p95": 17.5,
+              "max": 18.6
+            },
+            "presentationVertices": {
+              "median": 38896,
+              "max": 43984
+            },
+            "presentationQueryVisits": {
+              "median": 31900,
+              "max": 37384
+            },
+            "presentationColumns": {
+              "median": 9260,
+              "max": 10568
+            },
+            "phases": {
+              "setupLayoutAnimationMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "viewportIndicesMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "yBoundsMs": {
+                "median": 0.1,
+                "p95": 0.1
+              },
+              "cachePrepMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "getRenderDataMs": {
+                "median": 2.4,
+                "p95": 2.8
+              },
+              "chromeGridAxesMs": {
+                "median": 0.4,
+                "p95": 0.5
+              },
+              "rangeDrawMs": {
+                "median": 0.1,
+                "p95": 0.2
+              },
+              "rangeRasterCompositeMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "rangeDrawingMs": {
+                "median": 0.1,
+                "p95": 0.2
+              },
+              "ordinaryFillMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "fillEffectsMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "stackedAreasMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "barsMs": {
+                "median": 0.5,
+                "p95": 1.4
+              },
+              "connectedSeriesMs": {
+                "median": 1.2,
+                "p95": 1.5
+              },
+              "ordinarySeriesMs": {
+                "median": 1.7,
+                "p95": 2.9
+              },
+              "legendCacheFinalizeMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "cacheDrawSubmissionMs": {
+                "median": 2.2,
+                "p95": 3.5
+              },
+              "cacheRasterizationSyncMs": {
+                "median": 10.7,
+                "p95": 11.8
+              },
+              "finalCacheBlitMs": {
+                "median": 0,
+                "p95": 0.1
+              },
+              "overlaysCrosshairMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "rangeSelectorMs": {
+                "median": 0,
+                "p95": 0
+              },
+              "totalMs": {
+                "median": 15.4,
+                "p95": 17.5
+              }
+            },
+            "lastWork": {
+              "rangeRasterUsed": false,
+              "centerPresentationPoints": 35184,
+              "rangePresentationPoints": 3712,
+              "denseStepRectangleCalls": 6136,
+              "barRectangleCount": 66
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

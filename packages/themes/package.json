@@ -1,0 +1,76 @@
+{
+  "name": "@sixtyfold/themes",
+  "version": "1.0.0",
+  "description": "Immutable chart appearance presets for Sixtyfold Charts.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Different Planet - Unipessoal Lda.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./line": {
+      "types": "./dist/line.d.ts",
+      "import": "./dist/line.js",
+      "default": "./dist/line.js"
+    },
+    "./stock": {
+      "types": "./dist/stock.d.ts",
+      "import": "./dist/stock.js",
+      "default": "./dist/stock.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/60fold/charts-js.git",
+    "directory": "packages/themes"
+  },
+  "homepage": "https://sixtyfold.dev/en/docs/themes",
+  "bugs": {
+    "url": "https://github.com/60fold/charts-js/issues"
+  },
+  "keywords": [
+    "sixtyfold",
+    "charts",
+    "canvas",
+    "canvas2d",
+    "themes",
+    "visualization",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@sixtyfold/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "@sixtyfold/line": "workspace:^",
+    "@sixtyfold/stock": "workspace:^"
+  },
+  "peerDependenciesMeta": {
+    "@sixtyfold/line": {
+      "optional": true
+    },
+    "@sixtyfold/stock": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/clean-package-dist.mjs && tsc -p tsconfig.build.json && node ../../scripts/generate-theme-subpaths.mjs check",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit"
+  }
+}

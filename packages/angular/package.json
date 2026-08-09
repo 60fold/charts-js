@@ -1,0 +1,51 @@
+{
+  "name": "@sixtyfold/angular",
+  "version": "1.0.0",
+  "description": "Angular adapters for Sixtyfold line and stock charts.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Different Planet - Unipessoal Lda.",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/60fold/charts-js.git",
+    "directory": "packages/angular"
+  },
+  "homepage": "https://sixtyfold.dev/en/docs/frameworks#angular",
+  "bugs": {
+    "url": "https://github.com/60fold/charts-js/issues"
+  },
+  "keywords": [
+    "sixtyfold",
+    "charts",
+    "angular",
+    "canvas2d",
+    "visualization"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "@angular/common": ">=20.0.0 <23.0.0",
+    "@angular/core": ">=20.0.0 <23.0.0",
+    "@sixtyfold/core": "workspace:^",
+    "@sixtyfold/line": "workspace:^",
+    "@sixtyfold/stock": "workspace:^"
+  },
+  "peerDependenciesMeta": {
+    "@sixtyfold/core": {
+      "optional": true
+    },
+    "@sixtyfold/line": {
+      "optional": true
+    },
+    "@sixtyfold/stock": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json && node ../../scripts/finalize-angular-package.mjs",
+    "dev": "ng-packagr -p ng-package.json --watch",
+    "typecheck": "ngc -p tsconfig.lib.json --noEmit"
+  }
+}

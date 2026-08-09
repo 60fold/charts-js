@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-benchmark/
+coverage/
+artifacts/
+playwright-report/
+test-results/
+.svelte-kit/
+.angular/
+*.tsbuildinfo
+*.tgz
+.DS_Store
+.env
+.env.*
+!.env.example
+.vscode/

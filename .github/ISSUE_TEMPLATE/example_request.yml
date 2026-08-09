@@ -1,0 +1,73 @@
+name: Example request
+description: Request a focused, reproducible chart or framework example
+title: "[Example] "
+labels:
+  - documentation
+type: Feature
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked the documentation and existing examples first.
+          required: true
+
+  - type: dropdown
+    id: chart
+    attributes:
+      label: Chart family
+      options:
+        - Line
+        - Stock
+        - Both
+        - Framework integration only
+    validations:
+      required: true
+
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      multiple: true
+      options:
+        - TypeScript
+        - React
+        - Vue
+        - Angular
+        - Svelte
+        - SolidJS
+        - Server-side rendering
+        - Framework-independent
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: Describe the real developer task the example should teach.
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Required behavior
+      description: List the chart features, data shape, scale, interaction, or lifecycle behavior the example should cover.
+    validations:
+      required: true
+
+  - type: textarea
+    id: data
+    attributes:
+      label: Data source
+      description: If real data is important, identify a reusable source and its license. Otherwise say that synthetic data is suitable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Link comparable examples, sketches, or current attempts when useful.

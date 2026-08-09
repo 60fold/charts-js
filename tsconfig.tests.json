@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.check.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "types": ["vite/client", "node", "vitest/globals"]
+  },
+  "include": [
+    "packages/angular/test/**/*.ts",
+    "packages/core/src/**/*.test.ts",
+    "packages/line/src/**/*.test.ts",
+    "packages/stock/src/**/*.test.ts",
+    "packages/ssr/src/**/*.test.ts",
+    "packages/svelte/test/**/*.ts",
+    "packages/themes/src/**/*.test.ts",
+    "packages/mcp/src/**/*.test.ts",
+    "packages/vue/test/**/*.ts",
+    "test/*.test.ts",
+    "test/support/**/*.ts"
+  ],
+  "exclude": []
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "baseUrl": ".",
+    "noEmit": false,
+    "paths": {
+      "@sixtyfold/angular/line": ["../../packages/angular/line/public-api.ts"],
+      "@sixtyfold/angular/stock": ["../../packages/angular/stock/public-api.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "../shared/**/*.ts"]
+}

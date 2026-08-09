@@ -1,0 +1,61 @@
+{
+  "name": "@sixtyfold/line",
+  "version": "1.0.0",
+  "description": "High-performance Canvas2D line and multi-series charts for very large datasets.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Different Planet - Unipessoal Lda.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine.d.ts",
+      "import": "./dist/engine.js",
+      "default": "./dist/engine.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/60fold/charts-js.git",
+    "directory": "packages/line"
+  },
+  "homepage": "https://sixtyfold.dev/en/docs/line",
+  "bugs": {
+    "url": "https://github.com/60fold/charts-js/issues"
+  },
+  "keywords": [
+    "sixtyfold",
+    "line-chart",
+    "time-series",
+    "canvas",
+    "canvas2d",
+    "visualization",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@sixtyfold/core": "workspace:^"
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.types.json && node ../../scripts/prune-private-declarations.mjs dist/engine && node ../../scripts/check-line-production-bundle.mjs",
+    "build:benchmark": "vite build --mode benchmark",
+    "dev": "vite build --watch --emptyOutDir=false",
+    "typecheck": "tsc -p tsconfig.types.json --noEmit"
+  }
+}

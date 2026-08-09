@@ -1,0 +1,76 @@
+name: Feature request
+description: Propose a focused capability or improvement
+title: "[Feature] "
+labels:
+  - enhancement
+type: Feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start with the problem and workload rather than a preferred implementation. Large API or architecture changes should be discussed before code is written.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and did not find the same request.
+          required: true
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package or area
+      options:
+        - Line charts
+        - Stock charts
+        - Framework adapters
+        - Themes
+        - Server-side rendering
+        - MCP and agent tooling
+        - Documentation or examples
+        - Build, packaging, or release tooling
+        - Cross-package or not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should this solve?
+      description: Describe the developer or user need, including the data scale and runtime constraints when relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Explain the desired public behavior or API. A concise TypeScript sketch is welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Note current workarounds or other designs you evaluated.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add links, screenshots, benchmark targets, or comparable APIs where useful.
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you like to work on this?
+      description: Pull requests require acceptance of the Sixtyfold Contributor License Agreement.
+      options:
+        - Yes, after the design is agreed
+        - Maybe, with maintainer guidance
+        - "No"
+    validations:
+      required: true

@@ -1,0 +1,125 @@
+name: Bug report
+description: Report reproducible incorrect behavior in a published Sixtyfold package
+title: "[Bug] "
+labels:
+  - bug
+type: Bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Sixtyfold Components. Search existing issues before filing a report. For a security vulnerability, stop here and follow the [security policy](https://github.com/60fold/charts-js/security/policy).
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and did not find the same problem.
+          required: true
+        - label: This report does not disclose a security vulnerability.
+          required: true
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected package or area
+      options:
+        - "@sixtyfold/line"
+        - "@sixtyfold/stock"
+        - "@sixtyfold/react"
+        - "@sixtyfold/vue"
+        - "@sixtyfold/angular"
+        - "@sixtyfold/svelte"
+        - "@sixtyfold/solid"
+        - "@sixtyfold/themes"
+        - "@sixtyfold/ssr"
+        - "@sixtyfold/mcp"
+        - Documentation or examples
+        - Build, packaging, or release tooling
+        - Other or not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Package version, release candidate, or commit SHA where the problem occurs.
+      placeholder: 1.0.0-rc.1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: render-path
+    attributes:
+      label: Runtime or render path
+      multiple: true
+      options:
+        - Browser worker
+        - Browser main thread
+        - Node.js SSR
+        - Bun SSR
+        - Deno SSR
+        - Framework adapter
+        - MCP server
+        - Build or type checking
+        - Not sure
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and its impact.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How can we reproduce it?
+      description: Provide the smallest reproducible example, repository, or ordered steps. Include representative typed-array shapes and chart options when relevant.
+      placeholder: |
+        1. Install ...
+        2. Create a chart with ...
+        3. Perform ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: What did you expect?
+      description: Describe the result you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include only the fields relevant to the report.
+      value: |
+        - OS:
+        - Browser and version:
+        - Node.js, Bun, or Deno version:
+        - Framework and version:
+        - Device pixel ratio:
+        - Render mode:
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste console output, stack traces, or renderer diagnostics. Remove secrets and personal data.
+      render: shell
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Attach screenshots, recordings, profiles, or performance measurements when useful.

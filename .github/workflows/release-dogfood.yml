@@ -1,0 +1,332 @@
+name: Publish Sixtyfold dogfood suite
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact suite RC version, such as 1.0.0-rc.1
+        required: true
+        type: string
+      bootstrap:
+        description: One-time first-RC package creation with the protected bootstrap token
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: sixtyfold-npm-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ssr-platforms:
+    uses: ./.github/workflows/ssr-release-platforms.yml
+
+  publish:
+    name: Validate and publish the RC suite
+    needs: ssr-platforms
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_BOOTSTRAP: ${{ inputs.bootstrap }}
+      NODE_AUTH_TOKEN: ${{ inputs.bootstrap && secrets.NPM_BOOTSTRAP_TOKEN || '' }}
+      NPM_DOGFOOD_READ_TOKEN: ${{ secrets.NPM_DOGFOOD_READ_TOKEN || secrets.NPM_BOOTSTRAP_TOKEN }}
+    steps:
+      - name: Check out the reviewed source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Require the default branch
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "Dogfood releases must be dispatched from main." >&2
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.22.3
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install pinned package managers
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.15.1 --activate
+          npm install --global npm@11.18.0 --ignore-scripts
+
+      - name: Validate the suite RC and source manifests
+        run: |
+          node <<'NODE'
+          const { readFileSync } = require("node:fs");
+          const packages = [
+            "core",
+            "line",
+            "stock",
+            "ssr",
+            "themes",
+            "react",
+            "vue",
+            "angular",
+            "svelte",
+            "solid",
+            "mcp",
+          ];
+          const version = process.env.RELEASE_VERSION;
+          const bootstrap = process.env.RELEASE_BOOTSTRAP === "true";
+          if (!/^\d+\.\d+\.\d+-rc\.\d+$/.test(version)) {
+            throw new Error("Dogfood releases require an exact RC such as 1.0.0-rc.1");
+          }
+          if (bootstrap && version !== "1.0.0-rc.1") {
+            throw new Error("The bootstrap token is allowed only for 1.0.0-rc.1");
+          }
+          if (bootstrap && !process.env.NODE_AUTH_TOKEN) {
+            throw new Error("bootstrap=true requires the protected NPM_BOOTSTRAP_TOKEN secret");
+          }
+          if (!process.env.NPM_DOGFOOD_READ_TOKEN) {
+            throw new Error(
+              "Private dogfood releases require the protected NPM_DOGFOOD_READ_TOKEN secret",
+            );
+          }
+          const sourceVersion = version.split("-rc.")[0];
+          for (const directory of packages) {
+            const manifest = JSON.parse(
+              readFileSync(`packages/${directory}/package.json`, "utf8"),
+            );
+            if (manifest.name !== `@sixtyfold/${directory}`) {
+              throw new Error(`Unexpected package name in packages/${directory}: ${manifest.name}`);
+            }
+            if (manifest.version !== sourceVersion) {
+              throw new Error(
+                `${manifest.name} is ${manifest.version}; expected reviewed source version ${sourceVersion}`,
+              );
+            }
+          }
+          NODE
+
+      - name: Refuse partial or repeated suite versions
+        run: |
+          node --input-type=module <<'NODE'
+          const headers = {
+            authorization: `Bearer ${process.env.NPM_DOGFOOD_READ_TOKEN}`,
+          };
+          const identity = await fetch("https://registry.npmjs.org/-/whoami", {
+            headers,
+            redirect: "error",
+          });
+          if (!identity.ok) {
+            throw new Error(
+              `Unable to authenticate the private registry reader: npm returned HTTP ${identity.status}.`,
+            );
+          }
+
+          const packages = [
+            "core",
+            "line",
+            "stock",
+            "ssr",
+            "themes",
+            "react",
+            "vue",
+            "angular",
+            "svelte",
+            "solid",
+            "mcp",
+          ];
+          for (const directory of packages) {
+            const packageName = `@sixtyfold/${directory}`;
+            const packageUrl =
+              `https://registry.npmjs.org/${encodeURIComponent(packageName)}`;
+            const versionUrl =
+              `${packageUrl}/` +
+              encodeURIComponent(process.env.RELEASE_VERSION);
+            const response = await fetch(versionUrl, {
+              headers,
+              redirect: "error",
+            });
+            if (response.ok) {
+              throw new Error(
+                `${packageName}@${process.env.RELEASE_VERSION} already exists; ` +
+                  "a partially published suite must continue with a new RC number.",
+              );
+            }
+            if (response.status !== 404) {
+              throw new Error(
+                `Unable to establish ${packageName} availability: npm returned HTTP ${response.status}.`,
+              );
+            }
+            if (process.env.RELEASE_BOOTSTRAP !== "true") {
+              const packageResponse = await fetch(packageUrl, {
+                headers,
+                redirect: "error",
+              });
+              if (!packageResponse.ok) {
+                throw new Error(
+                  `Unable to read existing private package ${packageName}: ` +
+                    `npm returned HTTP ${packageResponse.status}.`,
+                );
+              }
+            }
+          }
+          NODE
+
+      - name: Install locked dependencies without lifecycle scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Check source formatting
+        run: pnpm run format:check
+
+      - name: Run semantic lint
+        run: pnpm run lint
+
+      - name: Build packages
+        run: pnpm run build:packages
+
+      - name: Typecheck packages
+        run: pnpm run typecheck
+
+      - name: Run unit and integration tests
+        run: pnpm run test:unit
+
+      - name: Enforce renderer coverage thresholds
+        run: pnpm run test:coverage
+
+      - name: Install the packed-browser test runtimes
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Exercise built renderer interactions and accessibility
+        run: pnpm run test:e2e:built
+
+      - name: Build and smoke-test framework examples
+        run: |
+          pnpm run build:examples
+          node scripts/check-framework-examples.mjs
+
+      - name: Verify complete reviewed source packages
+        run: node scripts/check-packed-release.mjs
+
+      - name: Stamp the complete suite in the ephemeral runner
+        run: >-
+          node scripts/stamp-release-manifests.mjs
+          --all
+          --version "${RELEASE_VERSION}"
+
+      - name: Rebuild exact RC packages and MCP metadata
+        run: |
+          pnpm -r --filter "./packages/**" run build
+          pnpm run mcp:catalog
+          pnpm --filter @sixtyfold/mcp run build
+          pnpm run check:mcp-catalog
+          pnpm run check:mcp-guidance
+
+      - name: Pack the complete RC suite
+        run: |
+          pack_dir="${RUNNER_TEMP}/sixtyfold-dogfood-pack"
+          mkdir -p "${pack_dir}"
+          packages=(core line stock ssr themes react vue angular svelte solid mcp)
+          for directory in "${packages[@]}"; do
+            package_dir="packages/${directory}"
+            if [ "${directory}" = "angular" ]; then
+              package_dir="${package_dir}/dist"
+            fi
+            pnpm --dir "${package_dir}" pack --pack-destination "${pack_dir}"
+          done
+
+      - name: Verify every exact RC tarball
+        run: >-
+          node scripts/check-packed-release.mjs
+          --tarballs-dir "${RUNNER_TEMP}/sixtyfold-dogfood-pack"
+
+      - name: Upload the complete dogfood suite
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sixtyfold-dogfood-${{ inputs.version }}
+          path: ${{ runner.temp }}/sixtyfold-dogfood-pack/*.tgz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+      - name: Publish in dependency order to npm next
+        run: |
+          pack_dir="${RUNNER_TEMP}/sixtyfold-dogfood-pack"
+
+          wait_for_registry() {
+            local package_name="$1"
+            PRIVATE_PACKAGE_NAME="${package_name}" node --input-type=module <<'NODE'
+            const packageName = process.env.PRIVATE_PACKAGE_NAME;
+            const version = process.env.RELEASE_VERSION;
+            const url =
+              `https://registry.npmjs.org/${encodeURIComponent(packageName)}/` +
+              encodeURIComponent(version);
+            const headers = {
+              authorization: `Bearer ${process.env.NPM_DOGFOOD_READ_TOKEN}`,
+            };
+
+            for (let attempt = 1; attempt <= 12; attempt += 1) {
+              const response = await fetch(url, { headers, redirect: "error" });
+              if (response.ok) {
+                const metadata = await response.json();
+                if (metadata.version !== version) {
+                  throw new Error(
+                    `npm returned ${metadata.version} while checking ${packageName}@${version}.`,
+                  );
+                }
+                const anonymousResponse = await fetch(url, { redirect: "error" });
+                if (anonymousResponse.ok) {
+                  throw new Error(`${packageName}@${version} is publicly readable.`);
+                }
+                if (anonymousResponse.status !== 404) {
+                  throw new Error(
+                    `Unable to verify restricted access for ${packageName}@${version}: ` +
+                      `npm returned HTTP ${anonymousResponse.status} anonymously.`,
+                  );
+                }
+                process.exit(0);
+              }
+              if (response.status === 401 || response.status === 403) {
+                throw new Error(
+                  `Private registry authentication failed with HTTP ${response.status}.`,
+                );
+              }
+              if (response.status !== 404) {
+                throw new Error(
+                  `Unable to verify ${packageName}@${version}: npm returned HTTP ${response.status}.`,
+                );
+              }
+              await new Promise((resolve) => setTimeout(resolve, 10_000));
+            }
+            throw new Error(
+              `npm did not expose private package ${packageName}@${version} within two minutes.`,
+            );
+          NODE
+          }
+
+          publish_package() {
+            local directory="$1"
+            local package_name="@sixtyfold/${directory}"
+            local archive="${pack_dir}/sixtyfold-${directory}-${RELEASE_VERSION}.tgz"
+            npm publish "${archive}" --access restricted --tag next
+            wait_for_registry "${package_name}"
+          }
+
+          publish_package core
+
+          publish_package line
+          publish_package stock
+
+          publish_package themes
+          publish_package ssr
+          publish_package react
+          publish_package vue
+          publish_package angular
+          publish_package svelte
+          publish_package solid
+
+          publish_package mcp

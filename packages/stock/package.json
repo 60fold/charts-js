@@ -1,0 +1,75 @@
+{
+  "name": "@sixtyfold/stock",
+  "version": "1.0.0",
+  "description": "High-performance Canvas2D OHLCV, candlestick, and market analytics charts.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Different Planet - Unipessoal Lda.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine.d.ts",
+      "import": "./dist/engine.js",
+      "default": "./dist/engine.js"
+    },
+    "./ohlcv": {
+      "types": "./dist/ohlcv.d.ts",
+      "import": "./dist/ohlcv.js",
+      "default": "./dist/ohlcv.js"
+    },
+    "./analytics": {
+      "types": "./dist/analytics.d.ts",
+      "import": "./dist/analytics.js",
+      "default": "./dist/analytics.js"
+    },
+    "./market-layers": {
+      "types": "./dist/marketLayers.d.ts",
+      "import": "./dist/marketLayers.js",
+      "default": "./dist/marketLayers.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/60fold/charts-js.git",
+    "directory": "packages/stock"
+  },
+  "homepage": "https://sixtyfold.dev/en/docs/stock",
+  "bugs": {
+    "url": "https://github.com/60fold/charts-js/issues"
+  },
+  "keywords": [
+    "sixtyfold",
+    "stock-chart",
+    "candlestick",
+    "ohlcv",
+    "canvas",
+    "canvas2d",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@sixtyfold/core": "workspace:^"
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.types.json && node ../../scripts/prune-private-declarations.mjs dist/engine",
+    "dev": "vite build --watch --emptyOutDir=false",
+    "typecheck": "tsc -p tsconfig.types.json --noEmit"
+  }
+}

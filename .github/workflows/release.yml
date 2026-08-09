@@ -1,0 +1,285 @@
+name: Publish Sixtyfold packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to publish
+        required: true
+        type: choice
+        options:
+          - core
+          - line
+          - stock
+          - ssr
+          - themes
+          - react
+          - vue
+          - angular
+          - svelte
+          - solid
+          - mcp
+      channel:
+        description: Publish an RC to `next`, or a reviewed stable release to `latest`
+        required: true
+        type: choice
+        options:
+          - rc
+          - stable
+      version:
+        description: Exact selected-package version (for example 1.0.1-rc.1 or 1.0.1)
+        required: true
+        type: string
+      bootstrap:
+        description: One-time first-RC package creation with the protected bootstrap token
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: sixtyfold-npm-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ssr-platforms:
+    uses: ./.github/workflows/ssr-release-platforms.yml
+
+  publish:
+    name: Validate and publish
+    needs: ssr-platforms
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      source_commit: ${{ steps.release-source.outputs.commit }}
+    env:
+      RELEASE_PACKAGE: ${{ inputs.package }}
+      RELEASE_CHANNEL: ${{ inputs.channel }}
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_BOOTSTRAP: ${{ inputs.bootstrap }}
+      NODE_AUTH_TOKEN: ${{ inputs.bootstrap && secrets.NPM_BOOTSTRAP_TOKEN || '' }}
+    steps:
+      - name: Check out the reviewed source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Require the default branch
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "Package releases must be dispatched from main." >&2
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.22.3
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install pinned package managers
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.15.1 --activate
+          npm install --global npm@11.18.0 --ignore-scripts
+
+      - name: Record the release commit
+        id: release-source
+        run: |
+          release_commit=$(git rev-parse HEAD)
+          echo "commit=${release_commit}" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate release inputs and source versions
+        run: |
+          node <<'NODE'
+          const { readFileSync } = require("node:fs");
+          const packages = new Set(["core", "line", "stock", "ssr", "themes", "react", "vue", "angular", "svelte", "solid", "mcp"]);
+          const packageDirectory = process.env.RELEASE_PACKAGE;
+          const channel = process.env.RELEASE_CHANNEL;
+          const version = process.env.RELEASE_VERSION;
+          const bootstrap = process.env.RELEASE_BOOTSTRAP === "true";
+          const stablePattern = /^\d+\.\d+\.\d+$/;
+          const rcPattern = /^\d+\.\d+\.\d+-rc\.\d+$/;
+
+          if (!packages.has(packageDirectory)) {
+            throw new Error(`Unknown release package: ${packageDirectory}`);
+          }
+          if (channel === "rc" && !rcPattern.test(version)) {
+            throw new Error("RC releases require a version such as 1.0.0-rc.1");
+          }
+          if (channel === "stable" && !stablePattern.test(version)) {
+            throw new Error("Stable releases require a version such as 1.0.0");
+          }
+          if (bootstrap && (channel !== "rc" || version !== "1.0.0-rc.1")) {
+            throw new Error("The bootstrap token is allowed only for 1.0.0-rc.1");
+          }
+          if (bootstrap && !process.env.NODE_AUTH_TOKEN) {
+            throw new Error("bootstrap=true requires the protected NPM_BOOTSTRAP_TOKEN secret");
+          }
+
+          const sourceVersion = version.split("-rc.")[0];
+          const manifest = JSON.parse(readFileSync(`packages/${packageDirectory}/package.json`, "utf8"));
+          if (manifest.name !== `@sixtyfold/${packageDirectory}`) {
+            throw new Error(`Unexpected selected package name: ${manifest.name}`);
+          }
+          if (manifest.version !== sourceVersion) {
+            throw new Error(`${manifest.name} is ${manifest.version}; expected reviewed source version ${sourceVersion}`);
+          }
+          NODE
+
+      - name: Install locked dependencies without lifecycle scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Check source formatting
+        run: pnpm run format:check
+
+      - name: Run semantic lint
+        run: pnpm run lint
+
+      - name: Refuse versions that already exist
+        run: |
+          node --input-type=module <<'NODE'
+          const packageName = `@sixtyfold/${process.env.RELEASE_PACKAGE}`;
+          const version = process.env.RELEASE_VERSION;
+          const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}/${encodeURIComponent(version)}`;
+          const response = await fetch(url, { redirect: "error" });
+          if (response.ok) {
+            throw new Error(`${packageName}@${version} already exists; npm versions are immutable.`);
+          }
+          if (response.status !== 404) {
+            throw new Error(`Unable to establish version availability: npm returned HTTP ${response.status}.`);
+          }
+          NODE
+
+      - name: Build packages
+        run: pnpm run build:packages
+
+      - name: Typecheck packages
+        run: pnpm run typecheck
+
+      - name: Run unit and integration tests
+        run: pnpm run test:unit
+
+      - name: Enforce renderer coverage thresholds
+        run: pnpm run test:coverage
+
+      - name: Install the packed-browser test runtimes
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Exercise built renderer interactions and accessibility
+        run: pnpm run test:e2e:built
+
+      - name: Build and smoke-test framework examples
+        run: |
+          pnpm run build:examples
+          node scripts/check-framework-examples.mjs
+
+      - name: Verify complete reviewed source packages
+        run: node scripts/check-packed-release.mjs
+
+      - name: Apply the selected release version in the ephemeral runner
+        run: >-
+          node scripts/stamp-release-manifests.mjs
+          --package "${RELEASE_PACKAGE}"
+          --version "${RELEASE_VERSION}"
+
+      - name: Build and pack the selected release artifact
+        run: |
+          pnpm --filter "@sixtyfold/${RELEASE_PACKAGE}" run build
+          mkdir -p "${RUNNER_TEMP}/sixtyfold-pack"
+          package_dir="packages/${RELEASE_PACKAGE}"
+          if [ "${RELEASE_PACKAGE}" = "angular" ]; then package_dir="${package_dir}/dist"; fi
+          pnpm --dir "${package_dir}" pack --pack-destination "${RUNNER_TEMP}/sixtyfold-pack"
+
+      - name: Verify the exact artifact selected for publication
+        run: >-
+          node scripts/check-packed-release.mjs
+          --package "${RELEASE_PACKAGE}"
+          --tarballs-dir "${RUNNER_TEMP}/sixtyfold-pack"
+
+      - name: Require published runtime dependencies
+        run: |
+          node <<'NODE'
+          const { execFileSync } = require("node:child_process");
+          const tarball = `${process.env.RUNNER_TEMP}/sixtyfold-pack/sixtyfold-${process.env.RELEASE_PACKAGE}-${process.env.RELEASE_VERSION}.tgz`;
+          const manifest = JSON.parse(
+            execFileSync("tar", ["-xOf", tarball, "package/package.json"], {
+              encoding: "utf8",
+            }),
+          );
+          const dependencies = {
+            ...(manifest.dependencies ?? {}),
+            ...(manifest.optionalDependencies ?? {}),
+            ...Object.fromEntries(
+              Object.entries(manifest.peerDependencies ?? {}).filter(
+                ([name]) => manifest.peerDependenciesMeta?.[name]?.optional !== true,
+              ),
+            ),
+          };
+          for (const [name, range] of Object.entries(dependencies)) {
+            if (!name.startsWith("@sixtyfold/")) continue;
+            try {
+              execFileSync("npm", ["view", `${name}@${range}`, "version", "--json"], {
+                encoding: "utf8",
+                stdio: ["ignore", "pipe", "pipe"],
+              });
+            } catch {
+              throw new Error(
+                `${manifest.name}@${manifest.version} requires ${name}@${range}, but npm cannot resolve that dependency. Publish the dependency first.`,
+              );
+            }
+          }
+          NODE
+
+      - name: Publish with npm trusted publishing
+        env:
+          DIST_TAG: ${{ inputs.channel == 'stable' && 'latest' || 'next' }}
+        run: |
+          npm publish \
+            "${RUNNER_TEMP}/sixtyfold-pack/sixtyfold-${RELEASE_PACKAGE}-${RELEASE_VERSION}.tgz" \
+            --access public \
+            --tag "${DIST_TAG}"
+
+  github-release:
+    name: Publish GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the released source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.publish.outputs.source_commit }}
+
+      - name: Create the version tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_PACKAGE: ${{ inputs.package }}
+          RELEASE_CHANNEL: ${{ inputs.channel }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_SOURCE_COMMIT: ${{ needs.publish.outputs.source_commit }}
+        run: |
+          tag="${RELEASE_PACKAGE}-v${RELEASE_VERSION}"
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            echo "GitHub release ${tag} already exists." >&2
+            exit 1
+          fi
+          arguments=(
+            "${tag}"
+            --target "${RELEASE_SOURCE_COMMIT}"
+            --title "@sixtyfold/${RELEASE_PACKAGE} ${RELEASE_VERSION}"
+            --generate-notes
+          )
+          if [ "${RELEASE_CHANNEL}" = "rc" ]; then
+            arguments+=(--prerelease --latest=false)
+          else
+            arguments+=(--latest)
+          fi
+          gh release create "${arguments[@]}"

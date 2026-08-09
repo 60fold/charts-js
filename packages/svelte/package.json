@@ -1,0 +1,71 @@
+{
+  "name": "@sixtyfold/svelte",
+  "version": "1.0.0",
+  "description": "Svelte adapters for Sixtyfold line and stock charts.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Different Planet - Unipessoal Lda.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./line": {
+      "types": "./dist/line.svelte.d.ts",
+      "svelte": "./dist/line.svelte",
+      "import": "./dist/line.svelte",
+      "default": "./dist/line.svelte"
+    },
+    "./stock": {
+      "types": "./dist/stock.svelte.d.ts",
+      "svelte": "./dist/stock.svelte",
+      "import": "./dist/stock.svelte",
+      "default": "./dist/stock.svelte"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/60fold/charts-js.git",
+    "directory": "packages/svelte"
+  },
+  "homepage": "https://sixtyfold.dev/en/docs/frameworks#svelte",
+  "bugs": {
+    "url": "https://github.com/60fold/charts-js/issues"
+  },
+  "keywords": [
+    "sixtyfold",
+    "charts",
+    "svelte",
+    "canvas2d",
+    "visualization"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "@sixtyfold/core": "workspace:^",
+    "@sixtyfold/line": "workspace:^",
+    "@sixtyfold/stock": "workspace:^",
+    "svelte": ">=5.0.0 <6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@sixtyfold/core": {
+      "optional": true
+    },
+    "@sixtyfold/line": {
+      "optional": true
+    },
+    "@sixtyfold/stock": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "svelte-package -i src -o dist",
+    "dev": "svelte-package -i src -o dist --watch",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
+  }
+}
