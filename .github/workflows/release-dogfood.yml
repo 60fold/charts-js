@@ -219,14 +219,23 @@ jobs:
           --version "${RELEASE_VERSION}"
 
       - name: Rebuild exact RC packages and MCP metadata
+        env:
+          # The manifests were deliberately stamped after the frozen install.
+          # Do not let pnpm 11 replace that reviewed install from the ephemeral versions.
+          pnpm_config_verify_deps_before_run: "false"
         run: |
-          pnpm -r --filter "./packages/**" run build
+          build_packages=(core line stock ssr themes react vue angular svelte solid)
+          for directory in "${build_packages[@]}"; do
+            pnpm --filter "@sixtyfold/${directory}" run build
+          done
           pnpm run mcp:catalog
           pnpm --filter @sixtyfold/mcp run build
           pnpm run check:mcp-catalog
           pnpm run check:mcp-guidance
 
       - name: Pack the complete RC suite
+        env:
+          pnpm_config_verify_deps_before_run: "false"
         run: |
           pack_dir="${RUNNER_TEMP}/sixtyfold-dogfood-pack"
           mkdir -p "${pack_dir}"

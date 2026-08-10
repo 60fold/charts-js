@@ -5,7 +5,7 @@ canvas lifecycle and destroys workers on unmount; the chart engine remains
 available through a ref.
 
 ```bash
-pnpm add @sixtyfold/react @sixtyfold/line
+pnpm add @sixtyfold/react@next @sixtyfold/line@next
 ```
 
 ```tsx

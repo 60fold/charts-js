@@ -190,6 +190,13 @@ export function recommendPackages(input: {
   ssr?: boolean;
   themes?: boolean;
 }): PackageRecommendation {
+  return recommendPackagesForVersion(input);
+}
+
+export function recommendPackagesForVersion(
+  input: Parameters<typeof recommendPackages>[0],
+  releaseVersion?: string,
+): PackageRecommendation {
   assertComponent(input.component);
   const framework = input.framework ?? "vanilla";
   assertFramework(framework);
@@ -213,7 +220,9 @@ export function recommendPackages(input: {
 
   return {
     packages,
-    installCommand: `pnpm add ${packages.join(" ")}`,
+    installCommand: `pnpm add ${packages
+      .map((packageName) => (releaseVersion?.includes("-") ? `${packageName}@next` : packageName))
+      .join(" ")}`,
     rationale,
   };
 }
@@ -670,6 +679,13 @@ export function generateIntegration(input: {
   themes?: boolean;
   dataShape?: DataShapeDescription;
 }): IntegrationRecipe {
+  return generateIntegrationForVersion(input);
+}
+
+export function generateIntegrationForVersion(
+  input: Parameters<typeof generateIntegration>[0],
+  releaseVersion?: string,
+): IntegrationRecipe {
   assertComponent(input.component);
   const framework = input.framework ?? "vanilla";
   assertFramework(framework);
@@ -678,12 +694,15 @@ export function generateIntegration(input: {
   const dataShape = input.dataShape
     ? normalizeDataShape(input.component, input.dataShape)
     : undefined;
-  const recommendation = recommendPackages({
-    component: input.component,
-    framework,
-    ssr: input.ssr,
-    themes: input.themes,
-  });
+  const recommendation = recommendPackagesForVersion(
+    {
+      component: input.component,
+      framework,
+      ssr: input.ssr,
+      themes: input.themes,
+    },
+    releaseVersion,
+  );
   const recipes: Record<FrameworkKind, () => string> = {
     vanilla: () => vanillaRecipe(input.component, renderMode, dataShape),
     react: () => reactRecipe(input.component, renderMode, dataShape),

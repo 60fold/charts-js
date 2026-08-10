@@ -3,7 +3,7 @@
 SolidJS hosts for Sixtyfold line and stock charts.
 
 ```bash
-pnpm add @sixtyfold/solid @sixtyfold/line
+pnpm add @sixtyfold/solid@next @sixtyfold/line@next
 ```
 
 ```tsx

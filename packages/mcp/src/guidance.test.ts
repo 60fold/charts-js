@@ -8,6 +8,7 @@ import {
   FRAMEWORKS,
   generateIntegration,
   recommendPackages,
+  recommendPackagesForVersion,
   recommendPerformanceSettings,
   validateChartOptions,
 } from "./guidance.js";
@@ -40,6 +41,17 @@ describe("@sixtyfold/mcp guidance", () => {
     const result = recommendPackages({ component: "line", framework: "react" });
     expect(result.packages).toEqual(["@sixtyfold/line", "@sixtyfold/react"]);
     expect(result.installCommand).not.toContain("@sixtyfold/stock");
+  });
+
+  it("uses the next channel for prerelease installs and the default channel for stable installs", () => {
+    const input = { component: "line" as const, framework: "react" as const };
+
+    expect(recommendPackagesForVersion(input, "1.0.0-rc.2").installCommand).toBe(
+      "pnpm add @sixtyfold/line@next @sixtyfold/react@next",
+    );
+    expect(recommendPackagesForVersion(input, "1.0.0").installCommand).toBe(
+      "pnpm add @sixtyfold/line @sixtyfold/react",
+    );
   });
 
   it("generates imports exercised by framework examples", () => {

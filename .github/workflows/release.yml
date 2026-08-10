@@ -4,10 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: Package to publish
+        description: Package to publish, or the complete suite
         required: true
         type: choice
         options:
+          - all
           - core
           - line
           - stock
@@ -27,7 +28,7 @@ on:
           - rc
           - stable
       version:
-        description: Exact selected-package version (for example 1.0.1-rc.1 or 1.0.1)
+        description: Exact package or suite version (for example 1.0.1-rc.1 or 1.0.1)
         required: true
         type: string
       bootstrap:
@@ -51,7 +52,7 @@ jobs:
     name: Validate and publish
     needs: ssr-platforms
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     environment: npm-release
     permissions:
       contents: read
@@ -98,7 +99,7 @@ jobs:
         run: |
           node <<'NODE'
           const { readFileSync } = require("node:fs");
-          const packages = new Set(["core", "line", "stock", "ssr", "themes", "react", "vue", "angular", "svelte", "solid", "mcp"]);
+          const packages = ["core", "line", "stock", "ssr", "themes", "react", "vue", "angular", "svelte", "solid", "mcp"];
           const packageDirectory = process.env.RELEASE_PACKAGE;
           const channel = process.env.RELEASE_CHANNEL;
           const version = process.env.RELEASE_VERSION;
@@ -106,7 +107,7 @@ jobs:
           const stablePattern = /^\d+\.\d+\.\d+$/;
           const rcPattern = /^\d+\.\d+\.\d+-rc\.\d+$/;
 
-          if (!packages.has(packageDirectory)) {
+          if (packageDirectory !== "all" && !packages.includes(packageDirectory)) {
             throw new Error(`Unknown release package: ${packageDirectory}`);
           }
           if (channel === "rc" && !rcPattern.test(version)) {
@@ -123,12 +124,15 @@ jobs:
           }
 
           const sourceVersion = version.split("-rc.")[0];
-          const manifest = JSON.parse(readFileSync(`packages/${packageDirectory}/package.json`, "utf8"));
-          if (manifest.name !== `@sixtyfold/${packageDirectory}`) {
-            throw new Error(`Unexpected selected package name: ${manifest.name}`);
-          }
-          if (manifest.version !== sourceVersion) {
-            throw new Error(`${manifest.name} is ${manifest.version}; expected reviewed source version ${sourceVersion}`);
+          const selectedPackages = packageDirectory === "all" ? packages : [packageDirectory];
+          for (const directory of selectedPackages) {
+            const manifest = JSON.parse(readFileSync(`packages/${directory}/package.json`, "utf8"));
+            if (manifest.name !== `@sixtyfold/${directory}`) {
+              throw new Error(`Unexpected selected package name: ${manifest.name}`);
+            }
+            if (manifest.version !== sourceVersion) {
+              throw new Error(`${manifest.name} is ${manifest.version}; expected reviewed source version ${sourceVersion}`);
+            }
           }
           NODE
 
@@ -141,18 +145,29 @@ jobs:
       - name: Run semantic lint
         run: pnpm run lint
 
-      - name: Refuse versions that already exist
+      - name: Check release version availability
         run: |
           node --input-type=module <<'NODE'
-          const packageName = `@sixtyfold/${process.env.RELEASE_PACKAGE}`;
+          const packages = ["core", "line", "stock", "ssr", "themes", "react", "vue", "angular", "svelte", "solid", "mcp"];
+          const selectedPackages =
+            process.env.RELEASE_PACKAGE === "all" ? packages : [process.env.RELEASE_PACKAGE];
           const version = process.env.RELEASE_VERSION;
-          const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}/${encodeURIComponent(version)}`;
-          const response = await fetch(url, { redirect: "error" });
-          if (response.ok) {
-            throw new Error(`${packageName}@${version} already exists; npm versions are immutable.`);
-          }
-          if (response.status !== 404) {
-            throw new Error(`Unable to establish version availability: npm returned HTTP ${response.status}.`);
+          for (const directory of selectedPackages) {
+            const packageName = `@sixtyfold/${directory}`;
+            const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}/${encodeURIComponent(version)}`;
+            const response = await fetch(url, { redirect: "error" });
+            if (response.ok) {
+              if (process.env.RELEASE_PACKAGE === "all") {
+                console.log(`${packageName}@${version} already exists and will be skipped.`);
+                continue;
+              }
+              throw new Error(`${packageName}@${version} already exists; npm versions are immutable.`);
+            }
+            if (response.status !== 404) {
+              throw new Error(
+                `Unable to establish ${packageName} availability: npm returned HTTP ${response.status}.`,
+              );
+            }
           }
           NODE
 
@@ -182,27 +197,56 @@ jobs:
       - name: Verify complete reviewed source packages
         run: node scripts/check-packed-release.mjs
 
-      - name: Apply the selected release version in the ephemeral runner
+      - name: Apply the suite release version in the ephemeral runner
         run: >-
           node scripts/stamp-release-manifests.mjs
-          --package "${RELEASE_PACKAGE}"
+          --all
           --version "${RELEASE_VERSION}"
 
-      - name: Build and pack the selected release artifact
+      - name: Build and pack release artifacts
+        env:
+          # The manifests were deliberately stamped after the frozen install.
+          # Do not let pnpm 11 replace that reviewed install from the ephemeral versions.
+          pnpm_config_verify_deps_before_run: "false"
         run: |
-          pnpm --filter "@sixtyfold/${RELEASE_PACKAGE}" run build
-          mkdir -p "${RUNNER_TEMP}/sixtyfold-pack"
-          package_dir="packages/${RELEASE_PACKAGE}"
-          if [ "${RELEASE_PACKAGE}" = "angular" ]; then package_dir="${package_dir}/dist"; fi
-          pnpm --dir "${package_dir}" pack --pack-destination "${RUNNER_TEMP}/sixtyfold-pack"
+          pack_dir="${RUNNER_TEMP}/sixtyfold-pack"
+          mkdir -p "${pack_dir}"
 
-      - name: Verify the exact artifact selected for publication
-        run: >-
-          node scripts/check-packed-release.mjs
-          --package "${RELEASE_PACKAGE}"
-          --tarballs-dir "${RUNNER_TEMP}/sixtyfold-pack"
+          if [ "${RELEASE_PACKAGE}" = "all" ]; then
+            packages=(core line stock ssr themes react vue angular svelte solid mcp)
+            build_packages=(core line stock ssr themes react vue angular svelte solid)
+            for directory in "${build_packages[@]}"; do
+              pnpm --filter "@sixtyfold/${directory}" run build
+            done
+            pnpm run mcp:catalog
+            pnpm --filter @sixtyfold/mcp run build
+            pnpm run check:mcp-catalog
+            pnpm run check:mcp-guidance
+          else
+            packages=("${RELEASE_PACKAGE}")
+            if [ "${RELEASE_PACKAGE}" = "mcp" ]; then pnpm run mcp:catalog; fi
+            pnpm --filter "@sixtyfold/${RELEASE_PACKAGE}" run build
+          fi
+
+          for directory in "${packages[@]}"; do
+            package_dir="packages/${directory}"
+            if [ "${directory}" = "angular" ]; then package_dir="${package_dir}/dist"; fi
+            pnpm --dir "${package_dir}" pack --pack-destination "${pack_dir}"
+          done
+
+      - name: Verify exact artifacts selected for publication
+        run: |
+          if [ "${RELEASE_PACKAGE}" = "all" ]; then
+            node scripts/check-packed-release.mjs \
+              --tarballs-dir "${RUNNER_TEMP}/sixtyfold-pack"
+          else
+            node scripts/check-packed-release.mjs \
+              --package "${RELEASE_PACKAGE}" \
+              --tarballs-dir "${RUNNER_TEMP}/sixtyfold-pack"
+          fi
 
       - name: Require published runtime dependencies
+        if: inputs.package != 'all'
         run: |
           node <<'NODE'
           const { execFileSync } = require("node:child_process");
@@ -240,10 +284,147 @@ jobs:
         env:
           DIST_TAG: ${{ inputs.channel == 'stable' && 'latest' || 'next' }}
         run: |
-          npm publish \
-            "${RUNNER_TEMP}/sixtyfold-pack/sixtyfold-${RELEASE_PACKAGE}-${RELEASE_VERSION}.tgz" \
-            --access public \
-            --tag "${DIST_TAG}"
+          set -o pipefail
+          pack_dir="${RUNNER_TEMP}/sixtyfold-pack"
+
+          registry_state() {
+            local package_name="$1"
+            RELEASE_PACKAGE_NAME="${package_name}" node --input-type=module <<'NODE'
+          const packageName = process.env.RELEASE_PACKAGE_NAME;
+          const version = process.env.RELEASE_VERSION;
+          const versionUrl =
+            `https://registry.npmjs.org/${encodeURIComponent(packageName)}/` +
+            encodeURIComponent(version);
+          const response = await fetch(versionUrl, { redirect: "error" });
+          if (response.ok) {
+            const metadata = await response.json();
+            if (metadata.version !== version) {
+              throw new Error(
+                `npm returned ${metadata.version} while checking ${packageName}@${version}.`,
+              );
+            }
+            console.log("published");
+          } else if (response.status === 404) {
+            const packageUrl = `https://registry.npmjs.org/${encodeURIComponent(packageName)}`;
+            const packageResponse = await fetch(packageUrl, { redirect: "error" });
+            if (packageResponse.ok) {
+              console.log("public");
+            } else if (packageResponse.status === 404) {
+              console.log("missing");
+            } else {
+              throw new Error(
+                `Unable to read ${packageName}: npm returned HTTP ${packageResponse.status}.`,
+              );
+            }
+          } else {
+            throw new Error(
+              `Unable to read ${packageName}@${version}: npm returned HTTP ${response.status}.`,
+            );
+          }
+          NODE
+          }
+
+          wait_for_registry() {
+            local package_name="$1"
+            RELEASE_PACKAGE_NAME="${package_name}" DIST_TAG="${DIST_TAG}" node --input-type=module <<'NODE'
+          const packageName = process.env.RELEASE_PACKAGE_NAME;
+          const version = process.env.RELEASE_VERSION;
+          const tag = process.env.DIST_TAG;
+          const packageUrl = `https://registry.npmjs.org/${encodeURIComponent(packageName)}`;
+          const versionUrl = `${packageUrl}/${encodeURIComponent(version)}`;
+
+          for (let attempt = 1; attempt <= 12; attempt += 1) {
+            const [versionResponse, packageResponse] = await Promise.all([
+              fetch(versionUrl, { redirect: "error" }),
+              fetch(`${packageUrl}?release_check=${Date.now()}`, {
+                headers: { "cache-control": "no-cache" },
+                redirect: "error",
+              }),
+            ]);
+            if (versionResponse.ok && packageResponse.ok) {
+              const [metadata, packument] = await Promise.all([
+                versionResponse.json(),
+                packageResponse.json(),
+              ]);
+              if (metadata.version !== version) {
+                throw new Error(
+                  `npm returned ${metadata.version} while checking ${packageName}@${version}.`,
+                );
+              }
+              if (packument["dist-tags"]?.[tag] === version) process.exit(0);
+            } else if (
+              ![200, 404].includes(versionResponse.status) ||
+              ![200, 404].includes(packageResponse.status)
+            ) {
+              throw new Error(
+                `Unable to verify ${packageName}@${version}: npm returned HTTP ` +
+                  `${versionResponse.status}/${packageResponse.status}.`,
+              );
+            }
+            await new Promise((resolve) => setTimeout(resolve, 10_000));
+          }
+          throw new Error(
+            `npm did not expose ${packageName}@${version} on ${tag} within two minutes.`,
+          );
+          NODE
+          }
+
+          publish_package() {
+            local directory="$1"
+            local package_name="@sixtyfold/${directory}"
+            local archive="${pack_dir}/sixtyfold-${directory}-${RELEASE_VERSION}.tgz"
+            local state
+            state=$(registry_state "${package_name}")
+
+            if [ "${state}" = "published" ]; then
+              if [ "${RELEASE_PACKAGE}" != "all" ]; then
+                echo "${package_name}@${RELEASE_VERSION} already exists." >&2
+                return 1
+              fi
+              echo "Skipping existing ${package_name}@${RELEASE_VERSION}."
+              wait_for_registry "${package_name}"
+              return
+            fi
+
+            if publish_output=$(npm publish "${archive}" --access public --tag "${DIST_TAG}" 2>&1); then
+              printf '%s\n' "${publish_output}"
+              wait_for_registry "${package_name}"
+              return
+            else
+              publish_status=$?
+            fi
+
+            printf '%s\n' "${publish_output}" >&2
+            if ! grep -q "E409" <<<"${publish_output}"; then
+              return "${publish_status}"
+            fi
+
+            echo "npm is processing the public-access transition for ${package_name}; waiting before one safe retry."
+            for attempt in {1..12}; do
+              sleep 10
+              state=$(registry_state "${package_name}")
+              if [ "${state}" = "published" ]; then
+                wait_for_registry "${package_name}"
+                return
+              fi
+              if [ "${state}" = "public" ]; then
+                npm publish "${archive}" --access public --tag "${DIST_TAG}"
+                wait_for_registry "${package_name}"
+                return
+              fi
+            done
+            echo "npm did not finish the public-access transition for ${package_name}." >&2
+            return 1
+          }
+
+          if [ "${RELEASE_PACKAGE}" = "all" ]; then
+            packages=(core line stock themes ssr react vue angular svelte solid mcp)
+          else
+            packages=("${RELEASE_PACKAGE}")
+          fi
+          for directory in "${packages[@]}"; do
+            publish_package "${directory}"
+          done
 
   github-release:
     name: Publish GitHub release
@@ -266,20 +447,31 @@ jobs:
           RELEASE_VERSION: ${{ inputs.version }}
           RELEASE_SOURCE_COMMIT: ${{ needs.publish.outputs.source_commit }}
         run: |
-          tag="${RELEASE_PACKAGE}-v${RELEASE_VERSION}"
-          if gh release view "${tag}" >/dev/null 2>&1; then
-            echo "GitHub release ${tag} already exists." >&2
-            exit 1
-          fi
-          arguments=(
-            "${tag}"
-            --target "${RELEASE_SOURCE_COMMIT}"
-            --title "@sixtyfold/${RELEASE_PACKAGE} ${RELEASE_VERSION}"
-            --generate-notes
-          )
-          if [ "${RELEASE_CHANNEL}" = "rc" ]; then
-            arguments+=(--prerelease --latest=false)
+          if [ "${RELEASE_PACKAGE}" = "all" ]; then
+            packages=(core line stock themes ssr react vue angular svelte solid mcp)
           else
-            arguments+=(--latest)
+            packages=("${RELEASE_PACKAGE}")
           fi
-          gh release create "${arguments[@]}"
+          for directory in "${packages[@]}"; do
+            tag="${directory}-v${RELEASE_VERSION}"
+            if gh release view "${tag}" >/dev/null 2>&1; then
+              if [ "${RELEASE_PACKAGE}" = "all" ]; then
+                echo "Skipping existing GitHub release ${tag}."
+                continue
+              fi
+              echo "GitHub release ${tag} already exists." >&2
+              exit 1
+            fi
+            arguments=(
+              "${tag}"
+              --target "${RELEASE_SOURCE_COMMIT}"
+              --title "@sixtyfold/${directory} ${RELEASE_VERSION}"
+              --generate-notes
+            )
+            if [ "${RELEASE_CHANNEL}" = "rc" ]; then
+              arguments+=(--prerelease --latest=false)
+            else
+              arguments+=(--latest)
+            fi
+            gh release create "${arguments[@]}"
+          done
