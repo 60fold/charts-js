@@ -5,7 +5,7 @@ canvas implementation such as `@napi-rs/canvas`; Sixtyfold does not force a
 specific canvas dependency on consumers.
 
 ```bash
-pnpm add @sixtyfold/ssr @napi-rs/canvas
+pnpm add @sixtyfold/ssr@next @napi-rs/canvas
 ```
 
 ```ts

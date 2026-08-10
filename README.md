@@ -3,6 +3,21 @@
 **High-performance TypeScript components for AI, observability, industrial IoT,
 and financial markets.**
 
+## Charts
+
+**20M data points in one interactive chart.**
+[See the live demo →](https://sixtyfold.dev)
+
+### Line
+
+![Sixtyfold Line chart in the light theme](./docs/assets/line-light.webp#gh-light-mode-only)
+![Sixtyfold Line chart in the dark theme](./docs/assets/line-dark.webp#gh-dark-mode-only)
+
+### Stock
+
+![Sixtyfold Stock chart in the light theme](./docs/assets/stock-light.webp#gh-light-mode-only)
+![Sixtyfold Stock chart in the dark theme](./docs/assets/stock-dark.webp#gh-dark-mode-only)
+
 ## Level of detail
 
 Sixtyfold Charts began with an idea borrowed from 3D games: if a renderer
@@ -41,10 +56,11 @@ Themes follow the same boundary through `@sixtyfold/themes/line` and
 `@sixtyfold/themes/stock`; either entry point works without installing the
 other renderer.
 
-For example, a React line-chart application installs:
+Until the stable 1.0.0 release, install the release candidate through npm's
+`next` channel. For example, a React line-chart application installs:
 
 ```bash
-pnpm add @sixtyfold/line @sixtyfold/react
+pnpm add @sixtyfold/line@next @sixtyfold/react@next
 ```
 
 ## MCP
@@ -52,9 +68,9 @@ pnpm add @sixtyfold/line @sixtyfold/react
 Coding agents can connect to the independently installed MCP developer tool
 without adding anything to the application bundle:
 
-- **Codex:** `codex mcp add sixtyfold -- npx -y @sixtyfold/mcp@1`
-- **Claude Code:** `claude mcp add sixtyfold -- npx -y @sixtyfold/mcp@1`
-- **Gemini CLI:** `gemini mcp add --scope user sixtyfold npx -y @sixtyfold/mcp@1`
+- **Codex:** `codex mcp add sixtyfold -- npx -y @sixtyfold/mcp@next`
+- **Claude Code:** `claude mcp add sixtyfold -- npx -y @sixtyfold/mcp@next`
+- **Gemini CLI:** `gemini mcp add --scope user sixtyfold npx -y @sixtyfold/mcp@next`
 
 Other MCP hosts can use the equivalent JSON configuration:
 
@@ -63,7 +79,7 @@ Other MCP hosts can use the equivalent JSON configuration:
   "mcpServers": {
     "sixtyfold": {
       "command": "npx",
-      "args": ["-y", "@sixtyfold/mcp@1"]
+      "args": ["-y", "@sixtyfold/mcp@next"]
     }
   }
 }

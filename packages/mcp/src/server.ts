@@ -8,11 +8,11 @@ import {
   DATA_TIME_UNITS,
   diagnoseChart,
   FRAMEWORKS,
-  generateIntegration,
+  generateIntegrationForVersion,
   OWNERSHIP_GUIDE,
   PERFORMANCE_GUIDE,
   RENDER_MODES,
-  recommendPackages,
+  recommendPackagesForVersion,
   recommendPerformanceSettings,
   validateChartOptions,
 } from "./guidance.js";
@@ -133,7 +133,7 @@ export function createSixtyfoldMcpServer(): McpServer {
       },
       annotations: readOnlyAnnotations,
     },
-    async (input) => textResult(recommendPackages(input)),
+    async (input) => textResult(recommendPackagesForVersion(input, serverVersion)),
   );
 
   server.registerTool(
@@ -155,7 +155,7 @@ export function createSixtyfoldMcpServer(): McpServer {
       },
       annotations: readOnlyAnnotations,
     },
-    async (input) => textResult(generateIntegration(input)),
+    async (input) => textResult(generateIntegrationForVersion(input, serverVersion)),
   );
 
   server.registerTool(

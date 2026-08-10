@@ -31,6 +31,30 @@ async function prepareStampedManifest({ root, directory, version }) {
   return { file, manifest };
 }
 
+function resolveSuiteWorkspaceDependencies(manifest, version) {
+  for (const field of [
+    "dependencies",
+    "optionalDependencies",
+    "peerDependencies",
+    "devDependencies",
+  ]) {
+    for (const [name, specifier] of Object.entries(manifest[field] ?? {})) {
+      if (!name.startsWith("@sixtyfold/") || typeof specifier !== "string") {
+        continue;
+      }
+      if (specifier === "workspace:^") {
+        manifest[field][name] = `^${version}`;
+      } else if (specifier === "workspace:~") {
+        manifest[field][name] = `~${version}`;
+      } else if (specifier === "workspace:*") {
+        manifest[field][name] = version;
+      } else if (specifier.startsWith("workspace:")) {
+        throw new Error(`${manifest.name} has unsupported suite dependency ${name}@${specifier}`);
+      }
+    }
+  }
+}
+
 export async function stampReleaseManifests({ root, directory, version }) {
   assertPackageDirectory(directory);
   assertReleaseVersion(version);
@@ -53,6 +77,9 @@ export async function stampReleaseSuiteManifests({ root, version }) {
       }),
     ),
   );
+  for (const { manifest } of prepared) {
+    resolveSuiteWorkspaceDependencies(manifest, version);
+  }
   await Promise.all(
     prepared.map(({ file, manifest }) => writeFile(file, `${JSON.stringify(manifest, null, 2)}\n`)),
   );

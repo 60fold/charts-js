@@ -17,7 +17,7 @@ Configure an MCP host to launch the npm package over `stdio`:
   "mcpServers": {
     "sixtyfold": {
       "command": "npx",
-      "args": ["-y", "@sixtyfold/mcp@1"]
+      "args": ["-y", "@sixtyfold/mcp@next"]
     }
   }
 }
@@ -26,7 +26,7 @@ Configure an MCP host to launch the npm package over `stdio`:
 You can also install it explicitly:
 
 ```bash
-pnpm add --global @sixtyfold/mcp
+pnpm add --global @sixtyfold/mcp@next
 sixtyfold-mcp
 ```
 

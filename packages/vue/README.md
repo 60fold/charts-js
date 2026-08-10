@@ -3,7 +3,7 @@
 Vue 3 hosts for Sixtyfold line and stock charts.
 
 ```bash
-pnpm add @sixtyfold/vue @sixtyfold/line
+pnpm add @sixtyfold/vue@next @sixtyfold/line@next
 ```
 
 ```vue

@@ -4,7 +4,7 @@ Immutable, content-neutral appearance presets for Sixtyfold Line and Stock
 charts.
 
 ```bash
-pnpm add @sixtyfold/themes
+pnpm add @sixtyfold/themes@next
 ```
 
 ```ts

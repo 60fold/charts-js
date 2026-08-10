@@ -135,7 +135,61 @@ test("suite release stamping applies one exact RC to every package", async () =>
     assert.equal(manifest.version, "1.0.0-rc.1");
   }
   const line = JSON.parse(await readFile(path.join(root, "packages/line/package.json"), "utf8"));
-  assert.deepEqual(line.dependencies, { "@sixtyfold/core": "workspace:^" });
+  assert.deepEqual(line.dependencies, { "@sixtyfold/core": "^1.0.0-rc.1" });
+});
+
+test("the public release workflow stamps the suite before packing one package", async () => {
+  const workflow = await readFile(path.resolve(".github/workflows/release.yml"), "utf8");
+  const stampStep = workflow.match(
+    /- name: Apply the suite release version[\s\S]*?\n\n      - name:/u,
+  )?.[0];
+  const packStep = workflow.match(
+    /- name: Build and pack the selected release artifact[\s\S]*?\n\n      - name:/u,
+  )?.[0];
+
+  assert.ok(stampStep, "release workflow contains the suite stamp step");
+  assert.match(stampStep, /stamp-release-manifests\.mjs\s+--all/u);
+  assert.doesNotMatch(stampStep, /--package/u);
+  assert.ok(packStep, "release workflow contains the selected-package pack step");
+  assert.match(packStep, /RELEASE_PACKAGE.*mcp.*pnpm run mcp:catalog/u);
+  assert.match(
+    packStep,
+    /pnpm_config_verify_deps_before_run:\s*["']false["']/u,
+    "post-stamp pnpm commands must not trigger an automatic frozen install",
+  );
+});
+
+test("the dogfood release disables pnpm dependency revalidation after suite stamping", async () => {
+  const workflow = await readFile(path.resolve(".github/workflows/release-dogfood.yml"), "utf8");
+  const rebuildStep = workflow.match(
+    /- name: Rebuild exact RC packages and MCP metadata[\s\S]*?\n\n      - name:/u,
+  )?.[0];
+  const packStep = workflow.match(
+    /- name: Pack the complete RC suite[\s\S]*?\n\n      - name:/u,
+  )?.[0];
+
+  assert.ok(rebuildStep, "dogfood workflow contains the post-stamp rebuild step");
+  assert.ok(packStep, "dogfood workflow contains the post-stamp pack step");
+  for (const step of [rebuildStep, packStep]) {
+    assert.match(step, /pnpm_config_verify_deps_before_run:\s*["']false["']/u);
+  }
+});
+
+test("release-candidate install guidance uses the next dist-tag", async () => {
+  const readmes = [
+    "README.md",
+    ...PACKAGE_DIRECTORIES.map((directory) => `packages/${directory}/README.md`),
+  ];
+
+  for (const readme of readmes) {
+    const source = await readFile(path.resolve(readme), "utf8");
+    assert.doesNotMatch(source, /@sixtyfold\/mcp@1(?![0-9])/u, readme);
+    for (const line of source.match(/^(?:pnpm add|npm install).*@sixtyfold\/.*$/gmu) ?? []) {
+      for (const packageSpecifier of line.match(/@sixtyfold\/[a-z]+(?:@[^\s]+)?/gu) ?? []) {
+        assert.match(packageSpecifier, /@next$/u, `${readme}: ${line}`);
+      }
+    }
+  }
 });
 
 test("suite release stamping validates all manifests before writing any", async () => {

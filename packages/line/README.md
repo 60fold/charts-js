@@ -5,7 +5,7 @@ time-series datasets. Worker rendering uses `OffscreenCanvas` when available
 and falls back to the main thread.
 
 ```bash
-pnpm add @sixtyfold/line
+pnpm add @sixtyfold/line@next
 ```
 
 ## Million-point quickstart
