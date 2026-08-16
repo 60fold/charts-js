@@ -168,23 +168,11 @@ Report suspected vulnerabilities privately as described in
 ## Licensing
 
 Sixtyfold Components is source-available under the
-[PolyForm Noncommercial License 1.0.0](./LICENSE.md). Noncommercial use is
-permitted under those terms. Commercial use requires a separate license—see
-[sixtyfold.dev](https://sixtyfold.dev) for details.
+[PolyForm Noncommercial License 1.0.0](./LICENSE.md).
 
-### License scope
-
-Using an AI coding assistant, agent, generator, translator, obfuscator, or
-refactoring tool does not change the applicable license. Generated or rewritten
-output that reproduces, modifies, embeds, calls, or otherwise incorporates
-Sixtyfold code remains subject to that license to the extent provided by
-contract and law. Renaming symbols or changing formatting and structure does
-not by itself grant commercial-use or redistribution rights.
-
-Code developed independently without using or reproducing Sixtyfold code is
-not covered by these terms. If you are unsure whether your intended use
-requires a commercial license, contact us through
-[sixtyfold.dev](https://sixtyfold.dev).
+For current licensing, commercial terms, and prices, see
+[Licensing and Commercial Terms](https://sixtyfold.dev/en/commercial-terms)
+and [Pricing](https://sixtyfold.dev/en/pricing).
 
 Contributions require acceptance of the
 [Sixtyfold Contributor License Agreement](./CONTRIBUTOR_LICENSE_AGREEMENT.md),

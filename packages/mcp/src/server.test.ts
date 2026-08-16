@@ -140,4 +140,33 @@ describe("@sixtyfold/mcp protocol", () => {
     const prompts = await client.listPrompts();
     expect(prompts.prompts.map((prompt) => prompt.name)).toContain("add-sixtyfold-chart");
   });
+
+  it("serves minimal licensing guardrails and delegates current terms to the website", async () => {
+    const client = await connectedClient();
+    const result = await client.readResource({ uri: "sixtyfold://guides/licensing" });
+    const text = result.contents
+      .map((content) => ("text" in content ? content.text : ""))
+      .join("\n");
+
+    expect(result.contents).toEqual([
+      expect.objectContaining({
+        uri: "sixtyfold://guides/licensing",
+        mimeType: "text/markdown",
+      }),
+    ]);
+    expect(text).toContain("PolyForm Noncommercial License 1.0.0");
+    expect(text).toContain("not OSI-approved open source");
+    expect(text).toContain("non-production commercial development and testing");
+    expect(text).toContain("before Production Use or Commercial Redistribution");
+    expect(text).toContain("no account, activation key, or runtime phone-home check");
+    expect(text).toContain("https://sixtyfold.dev/en/pricing");
+    expect(text).toContain("https://sixtyfold.dev/en/commercial-terms");
+    expect(text).not.toContain("https://sixtyfold.dev/en/licensing");
+    expect(text).not.toContain("https://sixtyfold.dev/en/commercial-evaluation-terms");
+    expect(text).not.toMatch(/\b(?:v1|24 months|50 employees|10 products)\b/iu);
+    expect(text).not.toMatch(
+      /money-back|standard support|critical security|current offer|Stripe\/Link/iu,
+    );
+    expect(text).not.toMatch(/[$€£]\s*\d/u);
+  });
 });

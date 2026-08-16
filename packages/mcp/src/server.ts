@@ -9,6 +9,7 @@ import {
   diagnoseChart,
   FRAMEWORKS,
   generateIntegrationForVersion,
+  LICENSING_GUIDE,
   OWNERSHIP_GUIDE,
   PERFORMANCE_GUIDE,
   RENDER_MODES,
@@ -227,6 +228,19 @@ export function createSixtyfoldMcpServer(): McpServer {
           text: JSON.stringify(summarizeApiCatalog(), null, 2),
         },
       ],
+    }),
+  );
+
+  server.registerResource(
+    "licensing-guide",
+    "sixtyfold://guides/licensing",
+    {
+      title: "Sixtyfold licensing guide",
+      description: "Minimal licensing guardrails with authoritative website links.",
+      mimeType: "text/markdown",
+    },
+    async (uri) => ({
+      contents: [{ uri: uri.href, mimeType: "text/markdown", text: LICENSING_GUIDE }],
     }),
   );
 

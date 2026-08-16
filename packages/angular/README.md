@@ -51,3 +51,12 @@ application build's `assets` array:
   { "glob": "**/*", "input": "node_modules/@sixtyfold/stock/dist/assets", "output": "assets" }
 ]
 ```
+
+## Licensing
+
+This package is source-available under the
+[PolyForm Noncommercial License 1.0.0](./LICENSE).
+
+For current licensing, commercial terms, and prices, see
+[Licensing and Commercial Terms](https://sixtyfold.dev/en/commercial-terms)
+and [Pricing](https://sixtyfold.dev/en/pricing).

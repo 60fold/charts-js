@@ -29,3 +29,12 @@ applications import `@sixtyfold/themes/line`; stock-only applications import
 `@sixtyfold/themes/stock`. These entry points keep the other renderer out of
 both installation and TypeScript declaration resolution. The root entry point
 retains the combined catalog for applications that use both chart types.
+
+## Licensing
+
+This package is source-available under the
+[PolyForm Noncommercial License 1.0.0](./LICENSE).
+
+For current licensing, commercial terms, and prices, see
+[Licensing and Commercial Terms](https://sixtyfold.dev/en/commercial-terms)
+and [Pricing](https://sixtyfold.dev/en/pricing).

@@ -947,6 +947,22 @@ export function diagnoseChart(input: {
   ]);
 }
 
+export const LICENSING_GUIDE = `# Sixtyfold licensing
+
+This bundled resource provides guardrails only. It is not a copy of the commercial terms and must not be used to infer current plans, prices, scope, refunds, support, or version coverage.
+
+- Public Sixtyfold packages are source-available under the PolyForm Noncommercial License 1.0.0, not OSI-approved open source.
+- Separate Sixtyfold terms permit non-production commercial development and testing; obtain the required license before Production Use or Commercial Redistribution.
+- The packages and local MCP server implement no account, activation key, or runtime phone-home check.
+
+Use the live website as the authoritative source:
+
+- Pricing: https://sixtyfold.dev/en/pricing
+- Licensing and Commercial Terms: https://sixtyfold.dev/en/commercial-terms
+
+Reading this resource performs no network request. Open the links separately for current information.
+`;
+
 export const PERFORMANCE_GUIDE = `# Sixtyfold performance baseline
 
 - Prefer renderMode: "auto"; large interactive datasets normally resolve to a worker when supported.

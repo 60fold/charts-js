@@ -51,3 +51,12 @@ fetch/decode implementation loads on demand, so primitive and eager
 
 Notices for generated runtime helper portions are in
 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
+
+## Licensing
+
+This package is source-available under the
+[PolyForm Noncommercial License 1.0.0](./LICENSE).
+
+For current licensing, commercial terms, and prices, see
+[Licensing and Commercial Terms](https://sixtyfold.dev/en/commercial-terms)
+and [Pricing](https://sixtyfold.dev/en/pricing).

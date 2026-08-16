@@ -74,9 +74,15 @@ A regression test asserts the worst-case search stays inside that budget.
 ## Resources and prompts
 
 The server exposes a compact package catalog, typed-array ownership guidance,
-performance guidance, and package-specific API resources under
+performance guidance, minimal licensing guardrails at
+`sixtyfold://guides/licensing`, and package-specific API resources under
 `sixtyfold://`. User-selectable prompts cover adding, tuning, and reviewing a
 Sixtyfold integration.
+
+The bundled licensing resource identifies the public licence and the point at
+which commercial terms are required. It deliberately leaves plans, prices,
+scope, refunds, support, and version coverage to the live pricing and legal
+pages. Reading it makes no network request.
 
 The bundled API inventory is generated from the same declaration files shipped
 by the component packages. CI fails when it drifts from those public entry
@@ -94,3 +100,12 @@ points.
 
 The selected MCP host and model may have their own data-handling behavior.
 Review that host separately before supplying proprietary code or data.
+
+## Licensing
+
+This package is source-available under the
+[PolyForm Noncommercial License 1.0.0](./LICENSE).
+
+For current licensing, commercial terms, and prices, see
+[Licensing and Commercial Terms](https://sixtyfold.dev/en/commercial-terms)
+and [Pricing](https://sixtyfold.dev/en/pricing).

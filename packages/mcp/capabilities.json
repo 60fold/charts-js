@@ -16,6 +16,10 @@
       "uri": "sixtyfold://guides/data-ownership"
     },
     {
+      "name": "licensing-guide",
+      "uri": "sixtyfold://guides/licensing"
+    },
+    {
       "name": "package-catalog",
       "uri": "sixtyfold://catalog/packages"
     },
