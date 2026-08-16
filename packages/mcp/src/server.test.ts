@@ -159,10 +159,11 @@ describe("@sixtyfold/mcp protocol", () => {
     expect(text).toContain("non-production commercial development and testing");
     expect(text).toContain("before Production Use or Commercial Redistribution");
     expect(text).toContain("no account, activation key, or runtime phone-home check");
-    expect(text).toContain("https://sixtyfold.dev/en/pricing");
-    expect(text).toContain("https://sixtyfold.dev/en/commercial-terms");
-    expect(text).not.toContain("https://sixtyfold.dev/en/licensing");
-    expect(text).not.toContain("https://sixtyfold.dev/en/commercial-evaluation-terms");
+    expect(text).toContain("sixtyfold.dev/en/pricing");
+    expect(text).toContain("sixtyfold.dev/en/commercial-terms");
+    expect(text).not.toMatch(/https?:\/\//u);
+    expect(text).not.toContain("sixtyfold.dev/en/licensing");
+    expect(text).not.toContain("sixtyfold.dev/en/commercial-evaluation-terms");
     expect(text).not.toMatch(/\b(?:v1|24 months|50 employees|10 products)\b/iu);
     expect(text).not.toMatch(
       /money-back|standard support|critical security|current offer|Stripe\/Link/iu,

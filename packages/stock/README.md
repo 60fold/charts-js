@@ -4,7 +4,7 @@ Canvas2D OHLCV and candlestick charts with indicators, price lines, event
 markers, volume profiles, and continuous or compressed market-time scales.
 
 ```bash
-pnpm add @sixtyfold/stock@next
+pnpm add @sixtyfold/stock
 ```
 
 ## Million-candle quickstart

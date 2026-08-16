@@ -5,7 +5,7 @@ applications install `@sixtyfold/line` or `@sixtyfold/stock`; those packages
 bring core in as a dependency.
 
 ```bash
-pnpm add @sixtyfold/core@next
+pnpm add @sixtyfold/core
 ```
 
 ```ts

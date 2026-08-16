@@ -3,7 +3,7 @@
 Svelte 5 components for Sixtyfold line and stock charts.
 
 ```bash
-pnpm add @sixtyfold/svelte@next @sixtyfold/line@next
+pnpm add @sixtyfold/svelte @sixtyfold/line
 ```
 
 ```svelte

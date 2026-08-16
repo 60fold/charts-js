@@ -56,11 +56,11 @@ Themes follow the same boundary through `@sixtyfold/themes/line` and
 `@sixtyfold/themes/stock`; either entry point works without installing the
 other renderer.
 
-Until the stable 1.0.0 release, install the release candidate through npm's
-`next` channel. For example, a React line-chart application installs:
+Install the stable packages from npm. For example, a React line-chart
+application installs:
 
 ```bash
-pnpm add @sixtyfold/line@next @sixtyfold/react@next
+pnpm add @sixtyfold/line @sixtyfold/react
 ```
 
 ## MCP
@@ -68,9 +68,9 @@ pnpm add @sixtyfold/line@next @sixtyfold/react@next
 Coding agents can connect to the independently installed MCP developer tool
 without adding anything to the application bundle:
 
-- **Codex:** `codex mcp add sixtyfold -- npx -y @sixtyfold/mcp@next`
-- **Claude Code:** `claude mcp add sixtyfold -- npx -y @sixtyfold/mcp@next`
-- **Gemini CLI:** `gemini mcp add --scope user sixtyfold npx -y @sixtyfold/mcp@next`
+- **Codex:** `codex mcp add sixtyfold -- npx -y @sixtyfold/mcp@1`
+- **Claude Code:** `claude mcp add sixtyfold -- npx -y @sixtyfold/mcp@1`
+- **Gemini CLI:** `gemini mcp add --scope user sixtyfold npx -y @sixtyfold/mcp@1`
 
 Other MCP hosts can use the equivalent JSON configuration:
 
@@ -79,7 +79,7 @@ Other MCP hosts can use the equivalent JSON configuration:
   "mcpServers": {
     "sixtyfold": {
       "command": "npx",
-      "args": ["-y", "@sixtyfold/mcp@next"]
+      "args": ["-y", "@sixtyfold/mcp@1"]
     }
   }
 }

@@ -211,7 +211,7 @@ test("the dogfood release disables pnpm dependency revalidation after suite stam
   assert.doesNotMatch(rebuildStep, /pnpm -r/u);
 });
 
-test("release-candidate install guidance uses the next dist-tag", async () => {
+test("stable install guidance does not point users to the prerelease channel", async () => {
   const readmes = [
     "README.md",
     ...PACKAGE_DIRECTORIES.map((directory) => `packages/${directory}/README.md`),
@@ -219,13 +219,13 @@ test("release-candidate install guidance uses the next dist-tag", async () => {
 
   for (const readme of readmes) {
     const source = await readFile(path.resolve(readme), "utf8");
-    assert.doesNotMatch(source, /@sixtyfold\/mcp@1(?![0-9])/u, readme);
-    for (const line of source.match(/^(?:pnpm add|npm install).*@sixtyfold\/.*$/gmu) ?? []) {
-      for (const packageSpecifier of line.match(/@sixtyfold\/[a-z]+(?:@[^\s]+)?/gu) ?? []) {
-        assert.match(packageSpecifier, /@next$/u, `${readme}: ${line}`);
-      }
-    }
+    assert.doesNotMatch(source, /@sixtyfold\/[a-z]+@next\b/u, readme);
   }
+
+  const rootReadme = await readFile(path.resolve("README.md"), "utf8");
+  const mcpReadme = await readFile(path.resolve("packages/mcp/README.md"), "utf8");
+  assert.match(rootReadme, /@sixtyfold\/mcp@1(?![0-9])/u);
+  assert.match(mcpReadme, /@sixtyfold\/mcp@1(?![0-9])/u);
 });
 
 test("suite release stamping validates all manifests before writing any", async () => {

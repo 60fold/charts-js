@@ -236,7 +236,7 @@ export function createSixtyfoldMcpServer(): McpServer {
     "sixtyfold://guides/licensing",
     {
       title: "Sixtyfold licensing guide",
-      description: "Minimal licensing guardrails with authoritative website links.",
+      description: "Minimal licensing guardrails with authoritative website addresses.",
       mimeType: "text/markdown",
     },
     async (uri) => ({

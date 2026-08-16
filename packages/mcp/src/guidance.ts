@@ -957,8 +957,8 @@ This bundled resource provides guardrails only. It is not a copy of the commerci
 
 Use the live website as the authoritative source:
 
-- Pricing: https://sixtyfold.dev/en/pricing
-- Licensing and Commercial Terms: https://sixtyfold.dev/en/commercial-terms
+- Pricing: sixtyfold.dev/en/pricing
+- Licensing and Commercial Terms: sixtyfold.dev/en/commercial-terms
 
 Reading this resource performs no network request. Open the links separately for current information.
 `;

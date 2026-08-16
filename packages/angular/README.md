@@ -5,7 +5,7 @@ components and are safe to render through Angular SSR because chart construction
 runs only in the browser.
 
 ```bash
-pnpm add @sixtyfold/angular@next @sixtyfold/line@next
+pnpm add @sixtyfold/angular @sixtyfold/line
 ```
 
 ```ts
