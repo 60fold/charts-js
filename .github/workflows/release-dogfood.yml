@@ -7,12 +7,6 @@ on:
         description: Exact suite RC version, such as 1.0.0-rc.1
         required: true
         type: string
-      bootstrap:
-        description: One-time first-RC package creation with the protected bootstrap token
-        required: true
-        default: false
-        type: boolean
-
 concurrency:
   group: sixtyfold-npm-release
   cancel-in-progress: false
@@ -35,9 +29,7 @@ jobs:
       id-token: write
     env:
       RELEASE_VERSION: ${{ inputs.version }}
-      RELEASE_BOOTSTRAP: ${{ inputs.bootstrap }}
-      NODE_AUTH_TOKEN: ${{ inputs.bootstrap && secrets.NPM_BOOTSTRAP_TOKEN || '' }}
-      NPM_DOGFOOD_READ_TOKEN: ${{ secrets.NPM_DOGFOOD_READ_TOKEN || secrets.NPM_BOOTSTRAP_TOKEN }}
+      NPM_DOGFOOD_READ_TOKEN: ${{ secrets.NPM_DOGFOOD_READ_TOKEN }}
     steps:
       - name: Check out the reviewed source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -80,15 +72,8 @@ jobs:
             "mcp",
           ];
           const version = process.env.RELEASE_VERSION;
-          const bootstrap = process.env.RELEASE_BOOTSTRAP === "true";
           if (!/^\d+\.\d+\.\d+-rc\.\d+$/.test(version)) {
             throw new Error("Dogfood releases require an exact RC such as 1.0.0-rc.1");
-          }
-          if (bootstrap && version !== "1.0.0-rc.1") {
-            throw new Error("The bootstrap token is allowed only for 1.0.0-rc.1");
-          }
-          if (bootstrap && !process.env.NODE_AUTH_TOKEN) {
-            throw new Error("bootstrap=true requires the protected NPM_BOOTSTRAP_TOKEN secret");
           }
           if (!process.env.NPM_DOGFOOD_READ_TOKEN) {
             throw new Error(
@@ -162,17 +147,15 @@ jobs:
                 `Unable to establish ${packageName} availability: npm returned HTTP ${response.status}.`,
               );
             }
-            if (process.env.RELEASE_BOOTSTRAP !== "true") {
-              const packageResponse = await fetch(packageUrl, {
-                headers,
-                redirect: "error",
-              });
-              if (!packageResponse.ok) {
-                throw new Error(
-                  `Unable to read existing private package ${packageName}: ` +
-                    `npm returned HTTP ${packageResponse.status}.`,
-                );
-              }
+            const packageResponse = await fetch(packageUrl, {
+              headers,
+              redirect: "error",
+            });
+            if (!packageResponse.ok) {
+              throw new Error(
+                `Unable to read existing private package ${packageName}: ` +
+                  `npm returned HTTP ${packageResponse.status}.`,
+              );
             }
           }
           NODE
