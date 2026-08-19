@@ -3,7 +3,6 @@
 **High-performance TypeScript components for AI, observability, industrial IoT,
 and financial markets.**
 
-[![CI](https://github.com/60fold/charts-js/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/60fold/charts-js/actions/workflows/ci.yml?query=branch%3Amain)
 [![npm: line](https://img.shields.io/npm/v/%40sixtyfold%2Fline?label=line)](https://www.npmjs.com/package/@sixtyfold/line)
 [![npm: stock](https://img.shields.io/npm/v/%40sixtyfold%2Fstock?label=stock)](https://www.npmjs.com/package/@sixtyfold/stock)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-2f5f9f)](./LICENSE.md)
@@ -12,6 +11,8 @@ and financial markets.**
 
 **20M data points in one interactive chart.**
 [See the live demo →](https://sixtyfold.dev)
+
+[Documentation →](https://sixtyfold.dev/docs)
 
 ### Line
 
